@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doxly 개인정보처리방침 / Privacy Policy</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --muted: #666;
+    --accent: #2563eb;
+    --border: #e5e7eb;
+    --bg: #ffffff;
+    --note-bg: #f3f4f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.7;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+  }
+  .brand {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .brand .dot { color: var(--accent); }
+  .lang-toggle {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .lang-toggle button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 7px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .lang-toggle button.active {
+    background: var(--accent);
+    color: #fff;
+  }
+  h1 {
+    font-size: 1.7rem;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+  }
+  .updated {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0 0 24px;
+  }
+  h2 {
+    font-size: 1.15rem;
+    margin: 32px 0 8px;
+    letter-spacing: -0.01em;
+  }
+  p { margin: 8px 0; }
+  ul { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+  strong { font-weight: 700; }
+  .note {
+    background: var(--note-bg);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0 0 24px;
+  }
+  footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  [data-lang] { display: none; }
+  [data-lang].show { display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Doxly<span class="dot">.</span></div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button id="btn-ko" class="active" onclick="setLang('ko')">한국어</button>
+      <button id="btn-en" onclick="setLang('en')">English</button>
+    </div>
+  </header>
+
+  <!-- ===================== 한국어 ===================== -->
+  <main data-lang="ko" class="show">
+    <h1>Doxly 개인정보처리방침</h1>
+    <p class="updated">최종 업데이트: 2026-06-09</p>
+
+    <h2>1. 핵심 요약</h2>
+    <p>Doxly("본 앱")는 스캔한 문서를 사용자의 기기에서만 처리하며, 문서 이미지·PDF·OCR로 추출한 텍스트를 당사 서버로 전송하지 않습니다. 계정 가입이 필요 없습니다.</p>
+
+    <h2>2. 우리가 수집하지 않는 것</h2>
+    <ul>
+      <li>스캔한 문서 이미지 및 PDF</li>
+      <li>OCR로 추출한 텍스트</li>
+      <li>파일명, 폴더명 등 문서 메타데이터</li>
+    </ul>
+    <p>위 데이터는 기기 내부 저장소에만 보관되며 당사 서버로 전송되지 않습니다.</p>
+
+    <h2>3. 제3자 SDK가 수집하는 것</h2>
+    <p>무료 버전은 다음 서비스를 사용하며, 각 서비스는 자체 정책에 따라 데이터를 처리합니다.</p>
+    <ul>
+      <li>광고(AppLovin MAX 미디에이션 및 연동 광고 네트워크): 광고 식별자(Advertising ID), 대략적 기기/네트워크 정보 등. <strong>Pro 구독 시 광고가 제거되어 이 수집이 발생하지 않습니다.</strong></li>
+      <li>Google Play Billing(결제): 구매/구독 토큰·주문 ID(Google이 처리). 당사는 구독 활성 상태만 확인합니다.</li>
+      <li>Google ML Kit / Google Play 서비스(문서 스캔): 스캔 처리는 기기 및 Play 서비스 내에서 수행되며, 스캔 이미지를 당사 서버로 전송하지 않습니다.</li>
+      <li>(도입 시) 익명 사용 통계: 화면 진입·기능 사용 같은 비식별·집계 이벤트만 수집하며, 문서 내용·이미지·파일명은 절대 포함하지 않습니다.</li>
+    </ul>
+
+    <h2>4. 권한 사용 목적</h2>
+    <ul>
+      <li>카메라: 문서 스캔(촬영)에만 사용.</li>
+      <li>저장소/문서 접근(SAF): 사용자가 명시적으로 내보내기를 할 때만 사용.</li>
+      <li>인터넷: 광고·결제·(선택적) 익명 통계에만 사용. 스캔한 문서에는 절대 사용하지 않습니다.</li>
+    </ul>
+
+    <h2>5. 데이터 보관 및 삭제</h2>
+    <ul>
+      <li>모든 문서·메타데이터는 기기 내 앱 전용 저장소에 보관됩니다.</li>
+      <li>앱 내에서 문서를 삭제하거나 앱을 제거하면 관련 데이터가 함께 삭제됩니다.</li>
+      <li>본 앱은 자동 클라우드 백업을 비활성화하여, 사용자가 직접 내보낸 파일 외에는 클라우드에 사본이 생성되지 않습니다.</li>
+      <li>광고 식별자는 기기 설정에서 재설정/삭제할 수 있습니다.</li>
+    </ul>
+
+    <h2>6. 구독</h2>
+    <p>Doxly Pro는 Google Play를 통한 월 자동 갱신 구독입니다. 결제·갱신·해지는 Google Play 계정에서 관리되며, 당사는 결제 수단 정보를 저장하지 않습니다. 구독은 Google Play에서 언제든 해지할 수 있습니다.</p>
+
+    <h2>7. 아동 개인정보(Families)</h2>
+    <p>본 앱은 만 14세(한국) / 만 13세(미국 COPPA) 미만의 아동을 대상으로 하지 않으며, 아동의 개인정보를 의도적으로 수집하지 않습니다.</p>
+
+    <h2>8. 국가별 권리</h2>
+    <ul>
+      <li>한국(PIPA): 정보주체는 자신의 개인정보 열람·정정·삭제·처리정지를 요구할 수 있습니다.</li>
+      <li>EEA/영국(GDPR): 접근·정정·삭제·처리제한·이동권·이의제기 권리가 있습니다.</li>
+      <li>위 권리 행사 및 광고 동의(EEA/UK) 관련 문의는 아래 연락처로 가능합니다.</li>
+    </ul>
+
+    <h2>9. 변경</h2>
+    <p>SDK 추가·정책 변경 시 본 방침을 갱신하고 갱신일을 표기합니다.</p>
+
+    <h2>10. 문의처</h2>
+    <p>이메일: <a href="mailto:junho.hong@doverunner.com">junho.hong@doverunner.com</a></p>
+  </main>
+
+  <!-- ===================== English ===================== -->
+  <main data-lang="en">
+    <h1>Doxly Privacy Policy</h1>
+    <p class="updated">Last updated: 2026-06-09</p>
+
+    <h2>1. Summary</h2>
+    <p>Doxly ("the App") processes your scanned documents only on your device. We do NOT send your document images, PDFs, or OCR-extracted text to our servers. No account is required.</p>
+
+    <h2>2. What we do NOT collect</h2>
+    <ul>
+      <li>Scanned document images and PDFs</li>
+      <li>Text extracted via OCR</li>
+      <li>File names, folder names, and other document metadata</li>
+    </ul>
+    <p>This data is stored only in on-device app storage and is never transmitted to our servers.</p>
+
+    <h2>3. What third-party SDKs collect</h2>
+    <p>The free version uses the following services, each of which processes data under its own policy:</p>
+    <ul>
+      <li>Ads (AppLovin MAX mediation and connected ad networks): advertising identifier (Advertising ID), coarse device/network information, etc. <strong>Subscribing to Pro removes ads, so this collection does not occur.</strong></li>
+      <li>Google Play Billing (payments): purchase/subscription token and order ID (handled by Google). We only check whether the subscription is active.</li>
+      <li>Google ML Kit / Google Play services (document scanning): scanning runs on the device and within Play services; scan images are not sent to our servers.</li>
+      <li>(If introduced) Anonymous usage analytics: only de-identified, aggregated events such as screen views and feature usage. Never includes document content, images, or file names.</li>
+    </ul>
+
+    <h2>4. Permissions</h2>
+    <ul>
+      <li>Camera: used only for scanning (capturing) documents.</li>
+      <li>Storage / document access (SAF): used only when you explicitly export.</li>
+      <li>Internet: used only for ads, billing, and (optional) anonymous analytics. Never used for your scanned documents.</li>
+    </ul>
+
+    <h2>5. Data retention and deletion</h2>
+    <ul>
+      <li>All documents and metadata are stored in app-private on-device storage.</li>
+      <li>Deleting a document in the app or uninstalling the app removes the associated data.</li>
+      <li>The App disables automatic cloud backup, so no copies are created in the cloud other than files you explicitly export.</li>
+      <li>You can reset or delete the advertising identifier in your device settings.</li>
+    </ul>
+
+    <h2>6. Subscription</h2>
+    <p>Doxly Pro is a monthly auto-renewing subscription through Google Play. Payment, renewal, and cancellation are managed in your Google Play account; we do not store payment details. You can cancel anytime in Google Play.</p>
+
+    <h2>7. Children (Families)</h2>
+    <p>The App is not directed to children under 14 (Korea) / 13 (US COPPA) and does not knowingly collect children's personal information.</p>
+
+    <h2>8. Regional rights</h2>
+    <ul>
+      <li>Korea (PIPA): you may request access, correction, deletion, and suspension of processing of your personal data.</li>
+      <li>EEA/UK (GDPR): you have rights to access, rectification, erasure, restriction, portability, and objection.</li>
+      <li>For exercising these rights and for ad-consent (EEA/UK) inquiries, use the contact below.</li>
+    </ul>
+
+    <h2>9. Changes</h2>
+    <p>We will update this policy when SDKs or practices change and note the update date.</p>
+
+    <h2>10. Contact</h2>
+    <p>Email: <a href="mailto:junho.hong@doverunner.com">junho.hong@doverunner.com</a></p>
+  </main>
+
+  <footer>
+    <span data-lang="ko" class="show">© 2026 Yeeun Apps · Doxly</span>
+    <span data-lang="en">© 2026 Yeeun Apps · Doxly</span>
+  </footer>
+</div>
+
+<script>
+  function setLang(lang) {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-lang]').forEach(function (el) {
+      el.classList.toggle('show', el.getAttribute('data-lang') === lang);
+    });
+    document.getElementById('btn-ko').classList.toggle('active', lang === 'ko');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  }
+  // 브라우저 언어 기준 초기값 (영어권이면 영어로 시작)
+  if ((navigator.language || 'ko').toLowerCase().indexOf('ko') !== 0) {
+    setLang('en');
+  }
+</script>
+</body>
+</html>
