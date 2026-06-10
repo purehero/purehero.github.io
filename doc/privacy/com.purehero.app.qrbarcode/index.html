@@ -1,114 +1,127 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QRCode — Privacy Policy / 개인정보처리방침</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QRCode 개인정보처리방침 / Privacy Policy</title>
 <style>
-  :root { --fg:#1a1c1e; --muted:#5b6166; --line:#e3e6ea; --accent:#2D6CDF; --bg:#ffffff; }
+  :root {
+    --fg: #1a1a1a;
+    --muted: #666;
+    --accent: #2563eb;
+    --border: #e5e7eb;
+    --bg: #ffffff;
+    --note-bg: #f3f4f6;
+  }
   * { box-sizing: border-box; }
-  body { margin:0; background:#f4f6f9; color:var(--fg);
-         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
-         line-height:1.65; }
-  .wrap { max-width:760px; margin:0 auto; padding:24px 20px 64px; }
-  header { background:var(--accent); color:#fff; border-radius:16px; padding:28px 24px; margin-bottom:24px; }
-  header h1 { margin:0 0 6px; font-size:24px; }
-  header p { margin:0; opacity:.9; font-size:14px; }
-  .langnav { margin:18px 0 8px; }
-  .langnav a { display:inline-block; text-decoration:none; color:var(--accent);
-               border:1px solid var(--accent); border-radius:999px; padding:6px 16px; margin-right:8px; font-size:14px; }
-  section { background:var(--bg); border:1px solid var(--line); border-radius:16px; padding:24px 24px 8px; margin-bottom:24px; }
-  h2 { font-size:20px; margin:8px 0 4px; }
-  h3 { font-size:16px; margin:22px 0 6px; }
-  p, li { font-size:15px; color:var(--fg); }
-  ul { padding-left:20px; }
-  .updated { color:var(--muted); font-size:13px; margin-top:0; }
-  .contact { color:var(--accent); }
-  footer { text-align:center; color:var(--muted); font-size:13px; margin-top:8px; }
-  hr { border:none; border-top:1px solid var(--line); margin:32px 0; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.7;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+  }
+  .brand {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .brand .dot { color: var(--accent); }
+  .lang-toggle {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .lang-toggle button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 7px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .lang-toggle button.active {
+    background: var(--accent);
+    color: #fff;
+  }
+  h1 {
+    font-size: 1.7rem;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+  }
+  .updated {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0 0 24px;
+  }
+  h2 {
+    font-size: 1.15rem;
+    margin: 32px 0 8px;
+    letter-spacing: -0.01em;
+  }
+  p { margin: 8px 0; }
+  ul { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+  strong { font-weight: 700; }
+  .note {
+    background: var(--note-bg);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0 0 24px;
+  }
+  footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  [data-lang] { display: none; }
+  [data-lang].show { display: block; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>QRCode — Privacy Policy</h1>
-    <p>QR &amp; barcode scanner and creator · 개인정보처리방침</p>
+    <div class="brand">QRCode<span class="dot">.</span></div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button id="btn-ko" onclick="setLang('ko')">한국어</button>
+      <button id="btn-en" class="active" onclick="setLang('en')">English</button>
+    </div>
   </header>
 
-  <div class="langnav">
-    <a href="#en">English</a>
-    <a href="#ko">한국어</a>
-  </div>
+  <!-- ===================== 한국어 ===================== -->
+  <main data-lang="ko">
+    <h1>QRCode 개인정보처리방침</h1>
+    <p class="updated">최종 업데이트: 2026-06-09</p>
 
-  <!-- ============ ENGLISH ============ -->
-  <section id="en">
-    <h2>Privacy Policy (English)</h2>
-    <p class="updated">Last updated: 2026-06-09 <!-- 출시일에 맞게 갱신 --></p>
-
-    <h3>1. Summary</h3>
-    <p>QRCode ("the app") processes the QR/barcode content you scan or create entirely on your device and never sends that content to our servers. No account is required.</p>
-
-    <h3>2. What we do NOT collect</h3>
-    <ul>
-      <li>The QR/barcode content you scan, and your scan history</li>
-      <li>The QR/barcode content you create, and your creation history</li>
-      <li>Contact text recognized from business cards via OCR</li>
-      <li>Images you save to your gallery</li>
-    </ul>
-    <p>This data is stored only in app-private storage on your device and is never transmitted to our servers.</p>
-
-    <h3>3. What third-party SDKs collect</h3>
-    <p>The app is ad-supported. The following services process data under their own policies:</p>
-    <ul>
-      <li>Ads (AppLovin MAX mediation and connected ad networks): advertising identifier (Advertising ID) and coarse device/network information, used for advertising.</li>
-      <li>Consent management (Google UMP / User Messaging Platform): collects consent for personalized ads from users in the EEA/UK. If consent is declined, ads run in a non-personalized mode.</li>
-      <li>Google ML Kit (business card text recognition): recognition runs on-device; card images and text are not sent to our servers.</li>
-    </ul>
-
-    <h3>4. Permissions</h3>
-    <ul>
-      <li>Camera: used only to scan QR/barcodes and photograph business cards.</li>
-      <li>Photos/media (gallery): used only to save generated QR images, or to read a QR from an image.</li>
-      <li>Internet / network state: used only for ad requests; never for your scanned or created content.</li>
-      <li>Advertising ID (AD_ID): used by the ad SDK for advertising.</li>
-    </ul>
-
-    <h3>5. Data retention and deletion</h3>
-    <ul>
-      <li>Scan and creation history is stored in app-private storage on your device.</li>
-      <li>Deleting items in the app (individually or all) or uninstalling the app removes the related data.</li>
-      <li>Images you save to the gallery are files you created; you can delete them in the app or in your gallery.</li>
-      <li>You can reset or delete your advertising ID in your device settings.</li>
-    </ul>
-
-    <h3>6. Children (Families)</h3>
-    <p>The app is not directed to children under 14 (Korea) / 13 (US COPPA) and does not knowingly collect children's personal information.</p>
-
-    <h3>7. Your rights by region</h3>
-    <ul>
-      <li>Korea (PIPA): you may request access, correction, deletion, or suspension of processing of your personal data.</li>
-      <li>EEA/UK (GDPR): you have rights of access, rectification, erasure, restriction, portability, and objection. You can change your ad consent in the app.</li>
-    </ul>
-    <p>To exercise these rights or for ad-consent questions, contact us below.</p>
-
-    <h3>8. Changes</h3>
-    <p>We will update this policy and its date when we add SDKs or change practices.</p>
-
-    <h3>9. Contact</h3>
-    <p>Email: <a class="contact" href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
-  </section>
-
-  <hr>
-
-  <!-- ============ 한국어 ============ -->
-  <section id="ko" lang="ko">
-    <h2>개인정보처리방침 (한국어)</h2>
-    <p class="updated">최종 업데이트: 2026-06-09 <!-- 출시일에 맞게 갱신 --></p>
-
-    <h3>1. 핵심 요약</h3>
+    <h2>1. 핵심 요약</h2>
     <p>QRCode("본 앱")는 스캔하거나 생성한 QR·바코드 내용을 사용자의 기기에서만 처리하며, 해당 내용을 당사 서버로 전송하지 않습니다. 계정 가입이 필요 없습니다.</p>
 
-    <h3>2. 우리가 수집하지 않는 것</h3>
+    <h2>2. 우리가 수집하지 않는 것</h2>
     <ul>
       <li>스캔한 QR·바코드 내용 및 스캔 기록</li>
       <li>생성한 QR·바코드 내용 및 생성 기록</li>
@@ -117,7 +130,7 @@
     </ul>
     <p>위 데이터는 기기 내부 저장소(앱 전용 영역)에만 보관되며 당사 서버로 전송되지 않습니다.</p>
 
-    <h3>3. 제3자 SDK가 수집하는 것</h3>
+    <h2>3. 제3자 SDK가 수집하는 것</h2>
     <p>본 앱은 광고로 운영되며, 다음 서비스가 자체 정책에 따라 데이터를 처리합니다.</p>
     <ul>
       <li>광고(AppLovin MAX 미디에이션 및 연동 광고 네트워크): 광고 식별자(Advertising ID), 대략적 기기/네트워크 정보 등을 광고 목적으로 사용합니다.</li>
@@ -125,7 +138,7 @@
       <li>Google ML Kit(명함 텍스트 인식): 인식은 기기에서 수행되며, 명함 이미지나 텍스트를 당사 서버로 전송하지 않습니다.</li>
     </ul>
 
-    <h3>4. 권한 사용 목적</h3>
+    <h2>4. 권한 사용 목적</h2>
     <ul>
       <li>카메라: QR·바코드 스캔 및 명함 촬영에만 사용.</li>
       <li>사진/미디어(갤러리): 생성한 QR 이미지 저장, 또는 이미지에서 QR을 읽을 때만 사용.</li>
@@ -133,7 +146,7 @@
       <li>광고 ID(AD_ID): 광고 SDK가 광고 목적으로 사용.</li>
     </ul>
 
-    <h3>5. 데이터 보관 및 삭제</h3>
+    <h2>5. 데이터 보관 및 삭제</h2>
     <ul>
       <li>스캔·생성 기록은 기기 내 앱 전용 저장소에 보관됩니다.</li>
       <li>앱 내에서 항목을 삭제하거나(개별/전체) 앱을 제거하면 관련 데이터가 함께 삭제됩니다.</li>
@@ -141,24 +154,97 @@
       <li>광고 식별자는 기기 설정에서 재설정/삭제할 수 있습니다.</li>
     </ul>
 
-    <h3>6. 아동 개인정보(Families)</h3>
+    <h2>6. 아동 개인정보(Families)</h2>
     <p>본 앱은 만 14세(한국) / 만 13세(미국 COPPA) 미만의 아동을 대상으로 하지 않으며, 아동의 개인정보를 의도적으로 수집하지 않습니다.</p>
 
-    <h3>7. 국가별 권리</h3>
+    <h2>7. 국가별 권리</h2>
     <ul>
       <li>한국(PIPA): 정보주체는 자신의 개인정보 열람·정정·삭제·처리정지를 요구할 수 있습니다.</li>
       <li>EEA/영국(GDPR): 접근·정정·삭제·처리제한·이동권·이의제기 권리가 있습니다. 광고 동의는 앱 내에서 변경할 수 있습니다.</li>
     </ul>
     <p>위 권리 행사 및 광고 동의 관련 문의는 아래 연락처로 가능합니다.</p>
 
-    <h3>8. 변경</h3>
+    <h2>8. 변경</h2>
     <p>SDK 추가·정책 변경 시 본 방침을 갱신하고 갱신일을 표기합니다.</p>
 
-    <h3>9. 문의처</h3>
-    <p>이메일: <a class="contact" href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
-  </section>
+    <h2>9. 문의처</h2>
+    <p>이메일: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+  </main>
 
-  <footer>© QRCode</footer>
+  <!-- ===================== English ===================== -->
+  <main data-lang="en" class="show">
+    <h1>QRCode Privacy Policy</h1>
+    <p class="updated">Last updated: 2026-06-09</p>
+
+    <h2>1. Summary</h2>
+    <p>QRCode ("the app") processes the QR/barcode content you scan or create entirely on your device and never sends that content to our servers. No account is required.</p>
+
+    <h2>2. What we do NOT collect</h2>
+    <ul>
+      <li>The QR/barcode content you scan, and your scan history</li>
+      <li>The QR/barcode content you create, and your creation history</li>
+      <li>Contact text recognized from business cards via OCR</li>
+      <li>Images you save to your gallery</li>
+    </ul>
+    <p>This data is stored only in app-private storage on your device and is never transmitted to our servers.</p>
+
+    <h2>3. What third-party SDKs collect</h2>
+    <p>The app is ad-supported. The following services process data under their own policies:</p>
+    <ul>
+      <li>Ads (AppLovin MAX mediation and connected ad networks): advertising identifier (Advertising ID) and coarse device/network information, used for advertising.</li>
+      <li>Consent management (Google UMP / User Messaging Platform): collects consent for personalized ads from users in the EEA/UK. If consent is declined, ads run in a non-personalized mode.</li>
+      <li>Google ML Kit (business card text recognition): recognition runs on-device; card images and text are not sent to our servers.</li>
+    </ul>
+
+    <h2>4. Permissions</h2>
+    <ul>
+      <li>Camera: used only to scan QR/barcodes and photograph business cards.</li>
+      <li>Photos/media (gallery): used only to save generated QR images, or to read a QR from an image.</li>
+      <li>Internet / network state: used only for ad requests; never for your scanned or created content.</li>
+      <li>Advertising ID (AD_ID): used by the ad SDK for advertising.</li>
+    </ul>
+
+    <h2>5. Data retention and deletion</h2>
+    <ul>
+      <li>Scan and creation history is stored in app-private storage on your device.</li>
+      <li>Deleting items in the app (individually or all) or uninstalling the app removes the related data.</li>
+      <li>Images you save to the gallery are files you created; you can delete them in the app or in your gallery.</li>
+      <li>You can reset or delete your advertising ID in your device settings.</li>
+    </ul>
+
+    <h2>6. Children (Families)</h2>
+    <p>The app is not directed to children under 14 (Korea) / 13 (US COPPA) and does not knowingly collect children's personal information.</p>
+
+    <h2>7. Your rights by region</h2>
+    <ul>
+      <li>Korea (PIPA): you may request access, correction, deletion, or suspension of processing of your personal data.</li>
+      <li>EEA/UK (GDPR): you have rights of access, rectification, erasure, restriction, portability, and objection. You can change your ad consent in the app.</li>
+    </ul>
+    <p>To exercise these rights or for ad-consent questions, contact us below.</p>
+
+    <h2>8. Changes</h2>
+    <p>We will update this policy and its date when we add SDKs or change practices.</p>
+
+    <h2>9. Contact</h2>
+    <p>Email: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+  </main>
+
+  <footer>
+    <span data-lang="ko">© 2026 QRCode</span>
+    <span data-lang="en" class="show">© 2026 QRCode</span>
+  </footer>
 </div>
+
+<script>
+  function setLang(lang) {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-lang]').forEach(function (el) {
+      el.classList.toggle('show', el.getAttribute('data-lang') === lang);
+    });
+    document.getElementById('btn-ko').classList.toggle('active', lang === 'ko');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  }
+  // 규칙: 브라우저 언어와 무관하게 최초 로드 시 항상 영어를 기본으로 표시한다.
+</script>
 </body>
 </html>
