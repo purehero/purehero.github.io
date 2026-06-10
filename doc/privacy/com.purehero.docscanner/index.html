@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -108,13 +108,13 @@
   <header>
     <div class="brand">Doxly<span class="dot">.</span></div>
     <div class="lang-toggle" role="group" aria-label="Language">
-      <button id="btn-ko" class="active" onclick="setLang('ko')">한국어</button>
-      <button id="btn-en" onclick="setLang('en')">English</button>
+      <button id="btn-ko" onclick="setLang('ko')">한국어</button>
+      <button id="btn-en" class="active" onclick="setLang('en')">English</button>
     </div>
   </header>
 
   <!-- ===================== 한국어 ===================== -->
-  <main data-lang="ko" class="show">
+  <main data-lang="ko">
     <h1>Doxly 개인정보처리방침</h1>
     <p class="updated">최종 업데이트: 2026-06-09</p>
 
@@ -174,7 +174,7 @@
   </main>
 
   <!-- ===================== English ===================== -->
-  <main data-lang="en">
+  <main data-lang="en" class="show">
     <h1>Doxly Privacy Policy</h1>
     <p class="updated">Last updated: 2026-06-09</p>
 
@@ -234,8 +234,8 @@
   </main>
 
   <footer>
-    <span data-lang="ko" class="show">© 2026 Yeeun Apps · Doxly</span>
-    <span data-lang="en">© 2026 Yeeun Apps · Doxly</span>
+    <span data-lang="ko">© 2026 Yeeun Apps · Doxly</span>
+    <span data-lang="en" class="show">© 2026 Yeeun Apps · Doxly</span>
   </footer>
 </div>
 
@@ -248,9 +248,9 @@
     document.getElementById('btn-ko').classList.toggle('active', lang === 'ko');
     document.getElementById('btn-en').classList.toggle('active', lang === 'en');
   }
-  // 브라우저 언어 기준 초기값 (영어권이면 영어로 시작)
-  if ((navigator.language || 'ko').toLowerCase().indexOf('ko') !== 0) {
-    setLang('en');
+  // 기본값은 영어. 브라우저가 한국어면 한국어로 시작.
+  if ((navigator.language || 'en').toLowerCase().indexOf('ko') === 0) {
+    setLang('ko');
   }
 </script>
 </body>
