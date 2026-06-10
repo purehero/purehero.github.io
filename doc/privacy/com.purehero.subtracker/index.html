@@ -242,10 +242,7 @@
     document.getElementById('btn-ko').classList.toggle('active', lang === 'ko');
     document.getElementById('btn-en').classList.toggle('active', lang === 'en');
   }
-  // 기본값은 영어. 브라우저가 한국어면 한국어로 시작.
-  if ((navigator.language || 'en').toLowerCase().indexOf('ko') === 0) {
-    setLang('ko');
-  }
+  // 규칙: 브라우저 언어와 무관하게 최초 로드 시 항상 영어를 기본으로 표시한다.
 </script>
 </body>
 </html>
