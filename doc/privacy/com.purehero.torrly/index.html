@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torrly 개인정보처리방침 / Privacy Policy</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --muted: #666;
+    --accent: #009688;
+    --border: #e5e7eb;
+    --bg: #ffffff;
+    --note-bg: #f3f4f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.7;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+  }
+  .brand {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .brand .dot { color: var(--accent); }
+  .lang-toggle {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .lang-toggle button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 7px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .lang-toggle button.active {
+    background: var(--accent);
+    color: #fff;
+  }
+  h1 {
+    font-size: 1.7rem;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+  }
+  .updated {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0 0 24px;
+  }
+  h2 {
+    font-size: 1.15rem;
+    margin: 32px 0 8px;
+    letter-spacing: -0.01em;
+  }
+  p { margin: 8px 0; }
+  ul { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+  strong { font-weight: 700; }
+  .note {
+    background: var(--note-bg);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0 0 24px;
+  }
+  footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  [data-lang] { display: none; }
+  [data-lang].show { display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Torrly<span class="dot">.</span></div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button id="btn-ko" onclick="setLang('ko')">한국어</button>
+      <button id="btn-en" class="active" onclick="setLang('en')">English</button>
+    </div>
+  </header>
+
+  <!-- ===================== 한국어 ===================== -->
+  <main data-lang="ko">
+    <h1>Torrly 개인정보처리방침</h1>
+    <p class="updated">최종 업데이트: 2026-06-12</p>
+
+    <h2>1. 핵심 요약</h2>
+    <p>Torrly("본 앱")는 사용자가 직접 추가한 magnet 링크·.torrent 파일과 다운로드한 파일을 사용자의 기기에서만 처리하며, 그 내용을 당사 서버로 전송하지 않습니다. 계정 가입이 필요 없습니다. 본 앱은 토렌트 콘텐츠를 검색·제공·호스팅하지 않습니다.</p>
+
+    <h2>2. 우리가 수집하지 않는 것</h2>
+    <ul>
+      <li>추가한 magnet 링크 및 .torrent 파일</li>
+      <li>다운로드한 파일의 내용</li>
+      <li>다운로드 목록·기록 및 저장 위치</li>
+    </ul>
+    <p>위 데이터는 사용자의 기기(사용자가 지정한 저장 폴더 및 앱 저장소)에만 보관되며 당사 서버로 전송되지 않습니다. 당사는 별도의 분석(애널리틱스) SDK를 사용하지 않습니다.</p>
+
+    <h2>3. P2P(피어 투 피어) 네트워크 특성</h2>
+    <p>BitTorrent는 본질적으로 P2P 프로토콜입니다. 토렌트를 다운로드하거나 시드(공유)할 때, 같은 토렌트에 연결된 트래커와 다른 피어에게 사용자의 <strong>IP 주소</strong>가 노출됩니다. 이는 프로토콜 동작에 필요한 것으로, 당사가 수집하거나 기록하지 않습니다. 프라이버시가 중요하다면 신뢰할 수 있는 VPN 사용을 고려하십시오.</p>
+
+    <h2>4. 제3자 SDK가 수집하는 것</h2>
+    <p>본 앱은 광고로 운영되며, 다음 서비스가 자체 정책에 따라 데이터를 처리합니다.</p>
+    <ul>
+      <li>광고(Google AdMob / Google Mobile Ads SDK): 광고 식별자(Advertising ID)와 대략적 기기·네트워크 정보 등을 광고 목적으로 사용합니다.</li>
+      <li>EEA/영국 사용자의 맞춤형 광고 동의는 Google의 동의 메커니즘을 따르며, 동의 거부 시 비개인화 광고로 동작합니다.</li>
+    </ul>
+    <p>자세한 내용은 <a href="https://policies.google.com/privacy">Google 개인정보처리방침</a>을 참고하십시오.</p>
+
+    <h2>5. 권한 사용 목적</h2>
+    <ul>
+      <li>저장소(전체 파일 접근): 사용자가 지정한 폴더에 파일을 저장하고 그 위치에서 시드하기 위해 사용.</li>
+      <li>알림: 다운로드 진행 상태를 포그라운드 서비스 알림으로 표시.</li>
+      <li>인터넷·네트워크 상태: 다른 피어와 P2P로 데이터를 주고받고, 광고를 요청하는 데 사용.</li>
+      <li>광고 ID(AD_ID): 광고 SDK가 광고 목적으로 사용.</li>
+    </ul>
+
+    <h2>6. 데이터 보관 및 삭제</h2>
+    <ul>
+      <li>다운로드한 파일은 사용자가 선택한 폴더에 저장됩니다.</li>
+      <li>앱에서 토렌트를 제거할 때 다운로드한 파일을 함께 삭제할지 선택할 수 있습니다.</li>
+      <li>앱을 제거하면 앱의 설정과 토렌트 목록 데이터가 삭제됩니다(사용자 폴더에 저장된 파일은 남을 수 있습니다).</li>
+      <li>광고 식별자는 기기 설정에서 재설정/삭제할 수 있습니다.</li>
+    </ul>
+
+    <h2>7. 아동 개인정보(Families)</h2>
+    <p>본 앱은 만 14세(한국) / 만 13세(미국 COPPA) 미만의 아동을 대상으로 하지 않으며, 아동의 개인정보를 의도적으로 수집하지 않습니다.</p>
+
+    <h2>8. 국가별 권리</h2>
+    <ul>
+      <li>한국(PIPA): 정보주체는 자신의 개인정보 열람·정정·삭제·처리정지를 요구할 수 있습니다.</li>
+      <li>EEA/영국(GDPR): 접근·정정·삭제·처리제한·이동권·이의제기 권리가 있습니다. 광고 동의는 변경할 수 있습니다.</li>
+    </ul>
+    <p>위 권리 행사 및 광고 동의 관련 문의는 아래 연락처로 가능합니다.</p>
+
+    <h2>9. 변경</h2>
+    <p>SDK 추가·정책 변경 시 본 방침을 갱신하고 갱신일을 표기합니다.</p>
+
+    <h2>10. 문의처</h2>
+    <p>이메일: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+  </main>
+
+  <!-- ===================== English ===================== -->
+  <main data-lang="en" class="show">
+    <h1>Torrly Privacy Policy</h1>
+    <p class="updated">Last updated: 2026-06-12</p>
+
+    <h2>1. Summary</h2>
+    <p>Torrly ("the app") processes the magnet links/.torrent files you add and the files you download entirely on your device, and never sends that content to our servers. No account is required. The app does not search for, provide, or host any torrent content.</p>
+
+    <h2>2. What we do NOT collect</h2>
+    <ul>
+      <li>The magnet links and .torrent files you add</li>
+      <li>The contents of the files you download</li>
+      <li>Your download list, history, and save locations</li>
+    </ul>
+    <p>This data stays only on your device (in the folder you choose and in app storage) and is never transmitted to our servers. We do not use a separate analytics SDK.</p>
+
+    <h2>3. Peer-to-peer (P2P) nature</h2>
+    <p>BitTorrent is inherently a peer-to-peer protocol. When you download or seed a torrent, your <strong>IP address</strong> is visible to the trackers and other peers connected to the same torrent. This is required for the protocol to work; we do not collect or log it. If privacy matters to you, consider using a trusted VPN.</p>
+
+    <h2>4. What third-party SDKs collect</h2>
+    <p>The app is ad-supported. The following services process data under their own policies:</p>
+    <ul>
+      <li>Ads (Google AdMob / Google Mobile Ads SDK): advertising identifier (Advertising ID) and coarse device/network information, used for advertising.</li>
+      <li>For users in the EEA/UK, consent for personalized ads is handled through Google's consent mechanism; if consent is declined, ads run in a non-personalized mode.</li>
+    </ul>
+    <p>See the <a href="https://policies.google.com/privacy">Google Privacy Policy</a> for details.</p>
+
+    <h2>5. Permissions</h2>
+    <ul>
+      <li>Storage (All files access): used to save files into the folder you choose and to seed from that location.</li>
+      <li>Notifications: used to show download progress via a foreground-service notification.</li>
+      <li>Internet / network state: used to exchange data with other peers over P2P and to request ads.</li>
+      <li>Advertising ID (AD_ID): used by the ad SDK for advertising.</li>
+    </ul>
+
+    <h2>6. Data retention and deletion</h2>
+    <ul>
+      <li>Downloaded files are saved in the folder you select.</li>
+      <li>When you remove a torrent in the app, you can choose whether to also delete the downloaded files.</li>
+      <li>Uninstalling the app removes its settings and torrent-list data (files saved in your chosen folder may remain).</li>
+      <li>You can reset or delete your advertising ID in your device settings.</li>
+    </ul>
+
+    <h2>7. Children (Families)</h2>
+    <p>The app is not directed to children under 14 (Korea) / 13 (US COPPA) and does not knowingly collect children's personal information.</p>
+
+    <h2>8. Your rights by region</h2>
+    <ul>
+      <li>Korea (PIPA): you may request access, correction, deletion, or suspension of processing of your personal data.</li>
+      <li>EEA/UK (GDPR): you have rights of access, rectification, erasure, restriction, portability, and objection. You can change your ad consent.</li>
+    </ul>
+    <p>To exercise these rights or for ad-consent questions, contact us below.</p>
+
+    <h2>9. Changes</h2>
+    <p>We will update this policy and its date when we add SDKs or change practices.</p>
+
+    <h2>10. Contact</h2>
+    <p>Email: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+  </main>
+
+  <footer>
+    <span data-lang="ko">© 2026 Torrly</span>
+    <span data-lang="en" class="show">© 2026 Torrly</span>
+  </footer>
+</div>
+
+<script>
+  function setLang(lang) {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-lang]').forEach(function (el) {
+      el.classList.toggle('show', el.getAttribute('data-lang') === lang);
+    });
+    document.getElementById('btn-ko').classList.toggle('active', lang === 'ko');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  }
+  // 규칙: 브라우저 언어와 무관하게 최초 로드 시 항상 영어를 기본으로 표시한다.
+</script>
+</body>
+</html>
