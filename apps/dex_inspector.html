@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DEX Inspector — APK / AAB / DEX Analyzer</title>
 <style>
-  /* ── 다크 테마 · 모노스페이스 · Android 그린 액센트 ── */
+  /* ── 라이트 테마 · 모노스페이스 · Android 그린 액센트 ── */
   :root{
-    --bg:#0e1116; --bg2:#161b22; --bg3:#1c232d; --line:#2a3441;
-    --fg:#d6dee8; --dim:#8a97a6; --accent:#3ddc84; --accent2:#2ea862;
-    --warn:#e3b341; --err:#f85149; --chip:#21303a;
+    --bg:#f4f6f9; --bg2:#ffffff; --bg3:#eef1f7; --line:#dde1e9;
+    --fg:#2c3e50; --dim:#7f8c9a; --accent:#1e9e5a; --accent2:#27ae60;
+    --warn:#c87f1e; --err:#e74c3c; --chip:#eef1fb;
     --mono:"JetBrains Mono","Space Mono","SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
   }
   *{box-sizing:border-box}
@@ -121,26 +121,26 @@
   .twist.open{transform:rotate(90deg)}
   .ticon{color:var(--accent)}
   .tpkg .tname{color:var(--fg)}
-  .tcls .tname{color:#cdd9e5}
+  .tcls .tname{color:#334155}
   .tbadge{color:var(--dim);font-size:11px;background:var(--chip);border-radius:10px;padding:0 7px;margin-left:4px}
   .children{margin-left:16px;border-left:1px dotted var(--line);padding-left:4px}
   .members{margin:2px 0 6px 30px;border-left:2px solid var(--accent2);padding:6px 10px;background:var(--bg);border-radius:0 6px 6px 0}
   .members .mhdr{color:var(--dim);font-size:11px;margin:4px 0 2px}
-  .members .mitem{color:#cdd9e5;padding:1px 0;white-space:pre-wrap;word-break:break-word}
+  .members .mitem{color:#334155;padding:1px 0;white-space:pre-wrap;word-break:break-word}
   .members .mitem .flag{color:var(--accent)}
   .members .empty{color:var(--dim);font-style:italic}
-  .clslink{color:#9ecbff}
+  .clslink{color:#2471a3}
   .pkgpath{color:var(--dim)}
 
   .status{
     display:none;position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
     background:var(--bg3);border:1px solid var(--accent);color:var(--fg);
-    padding:8px 16px;border-radius:20px;font-size:12px;z-index:50;box-shadow:0 6px 24px #0008;
+    padding:8px 16px;border-radius:20px;font-size:12px;z-index:50;box-shadow:0 6px 24px #00000026;
   }
   .status.on{display:block}
   .msg{padding:10px 12px;border-radius:6px;margin-bottom:12px;font-size:12px}
-  .msg.warn{background:#3a2f12;border:1px solid var(--warn);color:#f0d68c}
-  .msg.err{background:#3a1414;border:1px solid var(--err);color:#ff9b94}
+  .msg.warn{background:#fdf4e3;border:1px solid var(--warn);color:#8a5a14}
+  .msg.err{background:#fdecea;border:1px solid var(--err);color:#a83228}
   .empty-hint{color:var(--dim);padding:24px;text-align:center}
   .mono-sm{font-size:11px;color:var(--dim)}
 </style>

@@ -7,8 +7,8 @@
 <meta name="description" content="브라우저에서 바로 쓰는 웹 도구 모음">
 <style>
   :root{
-    --bg:#0e1116; --bg2:#171b22; --fg:#e6e9ef; --muted:#9aa4b2;
-    --accent:#4f7ef8; --border:#272d38;
+    --bg:#f4f6f9; --bg2:#ffffff; --fg:#2c3e50; --muted:#7f8c9a;
+    --accent:#3b66d6; --border:#dde1e9;
   }
   *{box-sizing:border-box}
   body{
@@ -27,14 +27,14 @@
     background:var(--bg2); border:1px solid var(--border); border-radius:14px;
     padding:22px 22px 20px; transition:border-color .15s, transform .15s, background .15s;
   }
-  .card:hover{border-color:var(--accent); transform:translateY(-2px); background:#1b2029}
+  .card:hover{border-color:var(--accent); transform:translateY(-2px); box-shadow:0 6px 20px rgba(59,102,214,.12)}
   .card .icon{font-size:1.6rem; margin-bottom:10px; color:var(--accent)}
   .card h2{font-size:1.18rem; margin:0 0 6px; letter-spacing:-.01em}
   .card p{margin:0 0 12px; color:var(--muted); font-size:.94rem}
   .meta{display:flex; gap:8px; flex-wrap:wrap}
   .tag{
-    font-size:.74rem; color:var(--accent); background:rgba(79,126,248,.12);
-    border:1px solid rgba(79,126,248,.25); padding:2px 9px; border-radius:999px;
+    font-size:.74rem; color:var(--accent); background:rgba(59,102,214,.10);
+    border:1px solid rgba(59,102,214,.25); padding:2px 9px; border-radius:999px;
   }
   footer{margin-top:48px; color:var(--muted); font-size:.85rem; text-align:center}
   footer a{color:var(--accent); text-decoration:none}

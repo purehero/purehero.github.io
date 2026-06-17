@@ -203,7 +203,7 @@
   ::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
-<body>
+<body class="light">
 <header class="app">
   <h1>⬡ API Tester</h1>
   <span class="sub">브라우저 단일 파일 REST 클라이언트</span>
@@ -824,7 +824,7 @@ function applyTheme(t){
   document.body.classList.toggle("light", t==="light");
   $("#themeToggle").textContent = t==="light" ? "🌙 다크" : "☀ 라이트";
 }
-let theme = localStorage.getItem(THEME_KEY) || "dark";
+let theme = localStorage.getItem(THEME_KEY) || "light";
 applyTheme(theme);
 $("#themeToggle").onclick = () => {
   theme = theme==="light" ? "dark" : "light";
