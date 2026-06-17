@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apps — purehero 웹 도구 모음</title>
+<meta name="description" content="브라우저에서 바로 쓰는 웹 도구 모음">
+<style>
+  :root{
+    --bg:#0e1116; --bg2:#171b22; --fg:#e6e9ef; --muted:#9aa4b2;
+    --accent:#4f7ef8; --border:#272d38;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px; margin:0 auto; padding:48px 20px 64px}
+  header{margin-bottom:36px}
+  h1{font-size:1.9rem; margin:0 0 6px; letter-spacing:-.02em}
+  h1 .hex{color:var(--accent)}
+  .lead{color:var(--muted); margin:0; font-size:1.02rem}
+  .grid{display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  .card{
+    display:block; text-decoration:none; color:inherit;
+    background:var(--bg2); border:1px solid var(--border); border-radius:14px;
+    padding:22px 22px 20px; transition:border-color .15s, transform .15s, background .15s;
+  }
+  .card:hover{border-color:var(--accent); transform:translateY(-2px); background:#1b2029}
+  .card .icon{font-size:1.6rem; margin-bottom:10px; color:var(--accent)}
+  .card h2{font-size:1.18rem; margin:0 0 6px; letter-spacing:-.01em}
+  .card p{margin:0 0 12px; color:var(--muted); font-size:.94rem}
+  .meta{display:flex; gap:8px; flex-wrap:wrap}
+  .tag{
+    font-size:.74rem; color:var(--accent); background:rgba(79,126,248,.12);
+    border:1px solid rgba(79,126,248,.25); padding:2px 9px; border-radius:999px;
+  }
+  footer{margin-top:48px; color:var(--muted); font-size:.85rem; text-align:center}
+  footer a{color:var(--accent); text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="hex">⬡</span> Apps</h1>
+    <p class="lead">브라우저에서 바로 실행되는 웹 도구 모음입니다. 설치 없이 클릭만 하세요.</p>
+  </header>
+
+  <main class="grid">
+    <a class="card" href="api_tester.html">
+      <div class="icon">⬡</div>
+      <h2>API Tester</h2>
+      <p>브라우저에서 동작하는 REST 클라이언트. 즐겨찾기, 요청 히스토리, 공개 API 예시를 지원합니다.</p>
+      <div class="meta"><span class="tag">REST</span><span class="tag">HTTP</span><span class="tag">한국어</span></div>
+    </a>
+
+    <a class="card" href="dex_inspector.html">
+      <div class="icon">▢</div>
+      <h2>DEX Inspector</h2>
+      <p>APK / AAB / DEX 파일을 브라우저에서 분석하는 도구. Android 패키지 구조를 들여다봅니다.</p>
+      <div class="meta"><span class="tag">APK</span><span class="tag">AAB</span><span class="tag">DEX</span></div>
+    </a>
+  </main>
+
+  <footer>
+    <a href="../">← purehero.github.io</a>
+  </footer>
+</div>
+</body>
+</html>

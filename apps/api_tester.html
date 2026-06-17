@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API Tester — 브라우저 REST 클라이언트</title>
+<style>
+  /* ── 다크 테마 · 모노스페이스 · 블루 액센트 ── */
+  :root{
+    --bg:#0e1116; --bg2:#161b22; --bg3:#1c232d; --line:#2a3441;
+    --fg:#d6dee8; --dim:#8a97a6; --accent:#4f7ef8; --accent2:#3b66d6;
+    --ok:#3ddc84; --warn:#e3b341; --err:#f85149; --chip:#21303a;
+    --mono:"JetBrains Mono","Space Mono","SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --m-GET:#3ddc84; --m-POST:#e3b341; --m-PUT:#4f7ef8; --m-PATCH:#b07cf0;
+    --m-DELETE:#f85149; --m-HEAD:#8a97a6; --m-OPTIONS:#8a97a6;
+    --j-key:#f85149; --j-str:#3ddc84; --j-num:#4f7ef8; --j-bool:#b07cf0; --j-null:#8a97a6;
+  }
+  /* ── 라이트 테마 (api_tester.py 팔레트 기반) ── */
+  body.light{
+    --bg:#f4f6f9; --bg2:#ffffff; --bg3:#eef1f7; --line:#dde1e9;
+    --fg:#2c3e50; --dim:#7f8c9a; --accent:#3b66d6; --accent2:#2c50b8;
+    --ok:#27ae60; --warn:#c87f1e; --err:#e74c3c; --chip:#eef1fb;
+    --j-key:#c0392b; --j-str:#1e8449; --j-num:#2471a3; --j-bool:#8e44ad; --j-null:#95a5a6;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--fg); font-family:var(--mono);
+    font-size:13px; line-height:1.5; -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column; height:100vh; overflow:hidden;
+  }
+  a{color:var(--accent)}
+  button{font-family:var(--mono)}
+
+  header.app{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:10px 16px;border-bottom:1px solid var(--line);background:var(--bg2);
+  }
+  header.app h1{font-size:16px;margin:0;color:var(--accent);letter-spacing:.5px}
+  header.app .sub{color:var(--dim);font-size:11px}
+  .themebtn{
+    margin-left:auto;background:var(--bg3);border:1px solid var(--line);color:var(--fg);
+    border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px;
+  }
+  .themebtn:hover{border-color:var(--accent);color:var(--accent)}
+
+  .cors{
+    background:var(--bg3);border-left:3px solid var(--warn);
+    padding:6px 14px;color:var(--dim);font-size:11px;
+  }
+  .cors b{color:var(--warn)}
+
+  .layout{display:flex;flex:1;min-height:0}
+
+  /* ── 사이드바 ── */
+  aside{
+    width:280px;flex-shrink:0;border-right:1px solid var(--line);
+    background:var(--bg2);overflow-y:auto;padding:0 0 30px;
+  }
+  aside h2{
+    font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);
+    margin:0;padding:12px 14px 6px;display:flex;justify-content:space-between;align-items:center;
+  }
+  aside h2 button{
+    background:none;border:none;color:var(--dim);font-size:10px;cursor:pointer;
+  }
+  aside h2 button:hover{color:var(--err)}
+  .row{
+    display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;
+    border-top:1px solid var(--bg);
+  }
+  .row:hover{background:var(--bg3)}
+  .badge{
+    font-size:9px;font-weight:700;padding:2px 0;width:52px;text-align:center;
+    border-radius:4px;color:#0e1116;flex-shrink:0;
+  }
+  .row .meta{min-width:0;flex:1}
+  .row .name{font-size:11px;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .url{font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .st{font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;flex-shrink:0}
+  .row .del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;flex-shrink:0}
+  .row .del:hover{color:var(--err)}
+  .empty{padding:14px;color:var(--dim);font-size:10px;text-align:center}
+  .presetTabs{display:flex;flex-wrap:wrap;gap:0;padding:0 8px;border-bottom:1px solid var(--line)}
+  .presetTabs .tab{padding:6px 9px;font-size:11px;border:none;background:none;
+    border-bottom:2px solid transparent;color:var(--dim);cursor:pointer}
+  .presetTabs .tab:hover{color:var(--fg)}
+  .presetTabs .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+  /* ── 메인 ── */
+  main{flex:1;min-width:0;overflow-y:auto;padding:14px 16px 40px}
+
+  .urlbar{display:flex;gap:8px;margin-bottom:6px}
+  .urlbar select{
+    background:var(--bg3);color:var(--fg);border:1px solid var(--line);border-radius:6px;
+    padding:0 8px;font-family:var(--mono);font-size:13px;font-weight:700;cursor:pointer;
+  }
+  .urlbar input{
+    flex:1;background:var(--bg2);color:var(--fg);border:1px solid var(--line);border-radius:6px;
+    padding:9px 12px;font-family:var(--mono);font-size:13px;
+  }
+  .urlbar input:focus{outline:none;border-color:var(--accent)}
+  .urlbar button{
+    background:var(--accent);color:#fff;border:none;border-radius:6px;padding:0 22px;
+    font-weight:700;cursor:pointer;font-size:13px;
+  }
+  .urlbar button:hover{background:var(--accent2)}
+  .urlbar button:disabled{opacity:.6;cursor:default}
+  .preview{
+    font-size:11px;color:var(--accent);background:var(--bg2);border:1px solid var(--line);
+    border-radius:6px;padding:5px 10px;margin-bottom:12px;word-break:break-all;display:none;
+  }
+  .preview.on{display:block}
+  .preview span{color:var(--dim)}
+  .proxybar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-size:11px}
+  .proxybar label{display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--fg);white-space:nowrap}
+  .proxybar input[type=checkbox]{accent-color:var(--accent)}
+  .proxybar input.tpl{
+    flex:1;min-width:200px;background:var(--bg2);color:var(--fg);border:1px solid var(--line);
+    border-radius:6px;padding:5px 9px;font-family:var(--mono);font-size:11px;
+  }
+  .proxybar input.tpl:disabled{opacity:.45}
+  .proxybar input.tpl:focus{outline:none;border-color:var(--accent)}
+  .proxybar .warn{color:var(--warn);white-space:nowrap}
+
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:8px;margin-bottom:12px}
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 6px}
+  .tab{
+    background:none;border:none;border-bottom:2px solid transparent;color:var(--dim);
+    padding:9px 14px;cursor:pointer;font-size:12px;
+  }
+  .tab:hover{color:var(--fg)}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .panel{display:none;padding:12px}
+  .panel.active{display:block}
+
+  /* KV 편집기 */
+  .kv-head,.kv-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+  .kv-head{color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+  .kv-head .k,.kv-row input.k{width:30%}
+  .kv-row input{
+    background:var(--bg3);color:var(--fg);border:1px solid var(--line);border-radius:5px;
+    padding:6px 8px;font-family:var(--mono);font-size:12px;
+  }
+  .kv-row input:focus{outline:none;border-color:var(--accent)}
+  .kv-row input.v{flex:1}
+  .kv-row input[type=checkbox]{width:auto;accent-color:var(--accent)}
+  .kv-row .del{background:none;border:none;color:var(--dim);cursor:pointer}
+  .kv-row .del:hover{color:var(--err)}
+  .addbtn{
+    background:none;border:1px dashed var(--line);color:var(--accent);border-radius:5px;
+    padding:5px 12px;cursor:pointer;font-size:11px;margin-top:4px;
+  }
+  .addbtn:hover{border-color:var(--accent)}
+  .hint{color:var(--dim);font-size:10px;margin:0 0 8px}
+
+  .radios{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;font-size:12px}
+  .radios label{cursor:pointer;display:flex;align-items:center;gap:5px}
+  .radios input{accent-color:var(--accent)}
+  textarea{
+    width:100%;background:var(--bg3);color:var(--fg);border:1px solid var(--line);border-radius:6px;
+    padding:9px;font-family:var(--mono);font-size:12px;resize:vertical;min-height:130px;
+  }
+  textarea:focus{outline:none;border-color:var(--accent)}
+  .lint{font-size:11px;color:var(--err);margin-top:4px;min-height:14px}
+  .field{margin-bottom:8px}
+  .field label{display:block;font-size:10px;color:var(--dim);margin-bottom:3px;text-transform:uppercase}
+  .field input{
+    width:100%;background:var(--bg3);color:var(--fg);border:1px solid var(--line);border-radius:5px;
+    padding:7px 9px;font-family:var(--mono);font-size:12px;
+  }
+  .field input:focus{outline:none;border-color:var(--accent)}
+  .two{display:flex;gap:10px}.two .field{flex:1}
+
+  /* 응답 */
+  .resmeta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 12px;font-size:12px}
+  .resmeta .status{font-weight:700;padding:3px 10px;border-radius:5px}
+  .resmeta .dim{color:var(--dim)}
+  .resmeta .copy{
+    margin-left:auto;background:var(--bg3);border:1px solid var(--line);color:var(--dim);
+    border-radius:5px;padding:4px 10px;cursor:pointer;font-size:11px;
+  }
+  .resmeta .copy:hover{color:var(--fg);border-color:var(--accent)}
+  .resbody{
+    margin:0;padding:12px;background:var(--bg);border-top:1px solid var(--line);
+    overflow:auto;max-height:50vh;font-size:12px;white-space:pre-wrap;word-break:break-word;
+  }
+  .resbody.code{white-space:pre;word-break:normal}
+  .placeholder{padding:40px;text-align:center;color:var(--dim)}
+  .hintbox{
+    margin:10px 12px;padding:8px 12px;border-radius:6px;font-size:11px;
+    background:var(--bg3);border-left:3px solid var(--err);
+  }
+  .hintbox.warn{border-left-color:var(--warn)}
+  .hintbox b{color:var(--fg)}
+
+  .j-key{color:var(--j-key);font-weight:700}
+  .j-str{color:var(--j-str)}.j-num{color:var(--j-num)}
+  .j-bool{color:var(--j-bool)}.j-null{color:var(--j-null)}
+
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+<header class="app">
+  <h1>⬡ API Tester</h1>
+  <span class="sub">브라우저 단일 파일 REST 클라이언트</span>
+  <button class="themebtn" id="themeToggle">☀ 라이트</button>
+</header>
+<div class="cors">
+  <b>⚠ CORS 안내</b> — 브라우저는 same-origin 정책을 따릅니다. 대상 API가
+  <code>Access-Control-Allow-Origin</code> 헤더를 주지 않으면 응답을 읽을 수 없습니다(아래 예시 API들은 대부분 허용됨).
+  CORS 미설정·사내 API는 데스크톱 버전(api_tester.py)을 사용하세요.
+</div>
+
+<div class="layout">
+  <!-- ── 사이드바 ── -->
+  <aside>
+    <h2>⚡ 공개 API 예시</h2>
+    <div class="presetTabs" id="presetTabs"></div>
+    <div id="presets"></div>
+    <h2>⭐ 즐겨찾기</h2>
+    <div id="favorites"></div>
+    <h2>🕑 요청 히스토리 <button id="clearHist">지우기</button></h2>
+    <div id="history"></div>
+  </aside>
+
+  <!-- ── 메인 ── -->
+  <main>
+    <div class="urlbar">
+      <select id="method">
+        <option>GET</option><option>POST</option><option>PUT</option>
+        <option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
+      </select>
+      <input id="url" placeholder="https://api.example.com/endpoint" spellcheck="false">
+      <button id="send">Send</button>
+    </div>
+    <div class="preview" id="preview"><span>전송 URL </span><span id="previewUrl"></span></div>
+    <div class="proxybar">
+      <label><input type="checkbox" id="proxyToggle"> CORS 프록시 경유</label>
+      <input class="tpl" id="proxyUrl" spellcheck="false" disabled
+             title="{url} 위치에 대상 URL이 자동 인코딩되어 삽입됩니다">
+      <span class="warn">⚠ 공개 프록시 — 인증 토큰이 제3자 서버를 지나갑니다</span>
+    </div>
+
+    <!-- 요청 설정 -->
+    <div class="card">
+      <div class="tabs" id="reqTabs">
+        <button class="tab active" data-p="pHeaders">Headers</button>
+        <button class="tab" data-p="pParams">Query Params</button>
+        <button class="tab" data-p="pBody">Body</button>
+        <button class="tab" data-p="pAuth">Auth</button>
+      </div>
+
+      <div class="panel active" id="pHeaders">
+        <div class="kv-head"><span style="width:22px"></span><span class="k">Key</span><span>Value</span></div>
+        <div id="headersKV"></div>
+        <button class="addbtn" data-kv="headersKV">+ 헤더 추가</button>
+      </div>
+
+      <div class="panel" id="pParams">
+        <p class="hint">ℹ URL에 <code>?a=1&b=2</code>를 직접 입력하면 자동 파싱됩니다.</p>
+        <div class="kv-head"><span style="width:22px"></span><span class="k">Key</span><span>Value</span></div>
+        <div id="paramsKV"></div>
+        <button class="addbtn" data-kv="paramsKV">+ 파라미터 추가</button>
+      </div>
+
+      <div class="panel" id="pBody">
+        <div class="radios">
+          <label><input type="radio" name="bodyType" value="json" checked> JSON</label>
+          <label><input type="radio" name="bodyType" value="form"> Form (urlencoded)</label>
+          <label><input type="radio" name="bodyType" value="text"> Plain Text</label>
+          <label><input type="radio" name="bodyType" value="none"> None</label>
+        </div>
+        <div id="bodyJson">
+          <textarea id="bodyJsonText" spellcheck="false" placeholder='{ "key": "value" }'></textarea>
+          <div class="lint" id="jsonLint"></div>
+        </div>
+        <div id="bodyForm" style="display:none">
+          <div class="kv-head"><span style="width:22px"></span><span class="k">Key</span><span>Value</span></div>
+          <div id="formKV"></div>
+          <button class="addbtn" data-kv="formKV">+ 필드 추가</button>
+        </div>
+        <div id="bodyText" style="display:none">
+          <textarea id="bodyRawText" spellcheck="false" placeholder="raw body…"></textarea>
+        </div>
+        <div id="bodyNone" style="display:none"><p class="hint">요청 본문 없음.</p></div>
+      </div>
+
+      <div class="panel" id="pAuth">
+        <div class="radios">
+          <label><input type="radio" name="authType" value="none" checked> 없음</label>
+          <label><input type="radio" name="authType" value="bearer"> Bearer Token</label>
+          <label><input type="radio" name="authType" value="basic"> Basic Auth</label>
+          <label><input type="radio" name="authType" value="apikey"> API Key (Header)</label>
+        </div>
+        <div id="authBearer" style="display:none">
+          <div class="field"><label>Token</label><input id="bearerTok" spellcheck="false"></div>
+        </div>
+        <div id="authBasic" style="display:none">
+          <div class="two">
+            <div class="field"><label>Username</label><input id="basicUser" spellcheck="false"></div>
+            <div class="field"><label>Password</label><input id="basicPass" type="password"></div>
+          </div>
+        </div>
+        <div id="authApikey" style="display:none">
+          <div class="two">
+            <div class="field"><label>Header Name</label><input id="apikeyName" value="X-API-Key" spellcheck="false"></div>
+            <div class="field"><label>Value</label><input id="apikeyVal" spellcheck="false"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 응답 -->
+    <div class="card">
+      <div class="tabs" id="resTabs">
+        <button class="tab active" data-p="rPretty">Pretty</button>
+        <button class="tab" data-p="rRaw">Raw</button>
+        <button class="tab" data-p="rHeaders">Headers</button>
+      </div>
+      <div id="resMetaWrap"></div>
+      <div id="resHint"></div>
+      <div class="panel active" id="rPretty"><pre class="resbody code" id="prettyBox"><div class="placeholder">Send 버튼을 눌러 요청을 보내세요</div></pre></div>
+      <div class="panel" id="rRaw"><pre class="resbody" id="rawBox"></pre></div>
+      <div class="panel" id="rHeaders"><pre class="resbody code" id="resHeadersBox"></pre></div>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+const HISTORY_KEY = "apiTester.history";
+const FAV_KEY     = "apiTester.favorites";
+const MAX_HISTORY = 50;
+
+const METHOD_COLORS = {GET:"--m-GET",POST:"--m-POST",PUT:"--m-PUT",PATCH:"--m-PATCH",
+  DELETE:"--m-DELETE",HEAD:"--m-HEAD",OPTIONS:"--m-OPTIONS"};
+
+const PRESET_GROUPS = [
+  {tab:"일반", items:[
+    {name:"JSONPlaceholder - Posts", method:"GET", url:"https://jsonplaceholder.typicode.com/posts"},
+    {name:"JSONPlaceholder - Post #1", method:"GET", url:"https://jsonplaceholder.typicode.com/posts/1"},
+    {name:"JSONPlaceholder - Create", method:"POST", url:"https://jsonplaceholder.typicode.com/posts",
+     bodyJson:JSON.stringify({title:"foo",body:"bar",userId:1},null,2)},
+    {name:"JSONPlaceholder - Users", method:"GET", url:"https://jsonplaceholder.typicode.com/users"},
+    {name:"JSONPlaceholder - Todos", method:"GET", url:"https://jsonplaceholder.typicode.com/todos",
+     params:[{key:"_limit",val:"5",checked:true}]},
+    {name:"Open-Meteo 날씨 (서울)", method:"GET", url:"https://api.open-meteo.com/v1/forecast",
+     params:[{key:"latitude",val:"37.5665",checked:true},{key:"longitude",val:"126.9780",checked:true},
+             {key:"current_weather",val:"true",checked:true}]},
+    {name:"RandomUser (1명)", method:"GET", url:"https://randomuser.me/api/",
+     params:[{key:"results",val:"1",checked:true}]},
+    {name:"Cat Facts", method:"GET", url:"https://catfact.ninja/fact"},
+    {name:"Dog CEO Random Image", method:"GET", url:"https://dog.ceo/api/breeds/image/random"},
+    {name:"REST Countries (KR)", method:"GET", url:"https://restcountries.com/v3.1/alpha/kr"},
+    {name:"Advice Slip", method:"GET", url:"https://api.adviceslip.com/advice"},
+    {name:"ExchangeRate USD", method:"GET", url:"https://open.er-api.com/v6/latest/USD"},
+    {name:"GitHub - Octocat User", method:"GET", url:"https://api.github.com/users/octocat"},
+  ]},
+  {tab:"업비트", items:[
+    {name:"지원 마켓 목록", method:"GET", url:"https://api.upbit.com/v1/market/all",
+     params:[{key:"isDetails",val:"true",checked:true}]},
+    {name:"전체 코인 현재가 (KRW)", method:"GET", url:"https://api.upbit.com/v1/ticker/all",
+     params:[{key:"quote_currencies",val:"KRW",checked:true}]},
+  ]},
+  {tab:"빗썸", items:[
+    {name:"전체 코인 현재가 (지원목록)", method:"GET", url:"https://api.bithumb.com/public/ticker/ALL_KRW"},
+    {name:"전체 호가", method:"GET", url:"https://api.bithumb.com/public/orderbook/ALL_KRW"},
+    {name:"입출금 현황 (전체)", method:"GET", url:"https://api.bithumb.com/public/assetsstatus/ALL"},
+  ]},
+  {tab:"코인원", corsBlocked:true, items:[
+    {name:"마켓 정보 (KRW) · 지원코인", method:"GET", url:"https://api.coinone.co.kr/public/v2/markets/KRW"},
+    {name:"전체 코인 현재가 (KRW)", method:"GET", url:"https://api.coinone.co.kr/public/v2/ticker_new/KRW"},
+    {name:"전체 통화 정보", method:"GET", url:"https://api.coinone.co.kr/public/v2/currencies"},
+  ]},
+  {tab:"코빗", corsBlocked:true, items:[
+    {name:"전체 코인 현재가 상세", method:"GET", url:"https://api.korbit.co.kr/v1/ticker/detailed/all"},
+    {name:"거래소 상수 (지원자산)", method:"GET", url:"https://api.korbit.co.kr/v1/constants"},
+  ]},
+];
+
+const HTTP_HINTS = {
+  400:["Bad Request","요청 형식이 잘못됐습니다. Body 또는 파라미터를 확인하세요."],
+  401:["Unauthorized","인증이 필요합니다. Auth 탭에서 토큰/키를 확인하세요."],
+  403:["Forbidden","접근 권한이 없습니다. 인증 정보가 올바른지 확인하세요."],
+  404:["Not Found","요청한 리소스가 없습니다. URL 경로를 다시 확인하세요."],
+  405:["Method Not Allowed","이 엔드포인트에서 이 HTTP 메서드를 허용하지 않습니다."],
+  408:["Request Timeout","서버가 요청을 기다리다 시간 초과했습니다."],
+  409:["Conflict","리소스 충돌이 발생했습니다. 중복 데이터를 확인하세요."],
+  422:["Unprocessable Entity","속성값이 유효하지 않습니다. Body 데이터를 점검하세요."],
+  429:["Too Many Requests","API 호출 한도를 초과했습니다. 잠시 후 다시 시도하세요."],
+  500:["Internal Server Error","서버 내부 오류입니다."],
+  502:["Bad Gateway","게이트웨이/프록시 서버가 잘못된 응답을 반환했습니다."],
+  503:["Service Unavailable","서버가 현재 사용 불가능합니다."],
+  504:["Gateway Timeout","게이트웨이가 업스트림에서 응답을 받지 못했습니다."],
+};
+
+// ── 유틸 ───────────────────────────────────────────────
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function formatSize(n){ return n>=1024 ? (n/1024).toFixed(1)+" KB" : n+" B"; }
+function statusColor(s){
+  if(s>=500) return "#f85149"; if(s>=400) return "#e3b341";
+  if(s>=300) return "#4f7ef8"; if(s>=200) return "#3ddc84"; return "#8a97a6";
+}
+function loadJSON(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch{ return []; } }
+function saveJSON(key,v){ localStorage.setItem(key, JSON.stringify(v)); }
+
+let history   = loadJSON(HISTORY_KEY);
+let favorites = loadJSON(FAV_KEY);
+
+// ── 탭 전환 ────────────────────────────────────────────
+function wireTabs(containerSel){
+  $$(containerSel+" .tab").forEach(t => t.onclick = () => {
+    const tabs = t.parentElement;
+    tabs.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    // 같은 card 안의 panel만 토글
+    const card = tabs.closest(".card");
+    card.querySelectorAll(":scope > .panel").forEach(p => p.classList.remove("active"));
+    card.querySelector("#"+t.dataset.p).classList.add("active");
+  });
+}
+wireTabs("#reqTabs"); wireTabs("#resTabs");
+
+// ── KV 편집기 ──────────────────────────────────────────
+function addKVRow(containerId, key="", val="", checked=true){
+  const box = $("#"+containerId);
+  const row = document.createElement("div");
+  row.className = "kv-row";
+  row.innerHTML = `
+    <input type="checkbox" ${checked?"checked":""}>
+    <input class="k" placeholder="key" spellcheck="false">
+    <input class="v" placeholder="value" spellcheck="false">
+    <button class="del" title="삭제">✕</button>`;
+  row.querySelector(".k").value = key;
+  row.querySelector(".v").value = val;
+  row.querySelector(".del").onclick = () => { row.remove(); updatePreview(); };
+  row.querySelectorAll("input").forEach(i => i.addEventListener("input", updatePreview));
+  row.querySelector("input[type=checkbox]").addEventListener("change", updatePreview);
+  box.appendChild(row);
+}
+function getKVRows(containerId){
+  return $$("#"+containerId+" .kv-row").map(r => ({
+    key:r.querySelector(".k").value, val:r.querySelector(".v").value,
+    checked:r.querySelector("input[type=checkbox]").checked,
+  }));
+}
+function getKVPairs(containerId){
+  const out = {};
+  $$("#"+containerId+" .kv-row").forEach(r => {
+    if(!r.querySelector("input[type=checkbox]").checked) return;
+    const k = r.querySelector(".k").value.trim();
+    if(k) out[k] = r.querySelector(".v").value;
+  });
+  return out;
+}
+function setKVRows(containerId, rows){
+  $("#"+containerId).innerHTML = "";
+  (rows||[]).forEach(r => addKVRow(containerId, r.key, r.val, r.checked!==false));
+}
+$$(".addbtn").forEach(b => b.onclick = () => { addKVRow(b.dataset.kv); updatePreview(); });
+
+// ── Body / Auth 라디오 ─────────────────────────────────
+function currentBodyType(){ return $("input[name=bodyType]:checked").value; }
+function currentAuthType(){ return $("input[name=authType]:checked").value; }
+$$("input[name=bodyType]").forEach(r => r.onchange = () => {
+  const v = currentBodyType();
+  $("#bodyJson").style.display = v==="json"?"block":"none";
+  $("#bodyForm").style.display = v==="form"?"block":"none";
+  $("#bodyText").style.display = v==="text"?"block":"none";
+  $("#bodyNone").style.display = v==="none"?"block":"none";
+});
+$$("input[name=authType]").forEach(r => r.onchange = () => {
+  const v = currentAuthType();
+  $("#authBearer").style.display = v==="bearer"?"block":"none";
+  $("#authBasic").style.display  = v==="basic"?"block":"none";
+  $("#authApikey").style.display = v==="apikey"?"block":"none";
+});
+
+// ── JSON 린트 ──────────────────────────────────────────
+$("#bodyJsonText").addEventListener("input", () => {
+  const raw = $("#bodyJsonText").value.trim();
+  if(!raw){ $("#jsonLint").textContent = ""; return; }
+  try{ JSON.parse(raw); $("#jsonLint").textContent = ""; }
+  catch(e){ $("#jsonLint").textContent = "⚠ JSON 오류: " + e.message; }
+});
+
+// ── 전송 URL 프리뷰 ────────────────────────────────────
+function buildFullURL(){
+  const url = $("#url").value.trim();
+  if(!url) return "";
+  const params = getKVPairs("paramsKV");
+  const qs = Object.entries(params).map(([k,v]) => encodeURIComponent(k)+"="+encodeURIComponent(v)).join("&");
+  const base = url.split("?")[0];
+  return qs ? base+"?"+qs : url;
+}
+function updatePreview(){
+  const full = buildFullURL();
+  const pv = $("#preview");
+  if(!full){ pv.classList.remove("on"); return; }
+  $("#previewUrl").textContent = full + (typeof proxyEnabled==="function" && proxyEnabled() ? "   (프록시 경유)" : "");
+  pv.classList.add("on");
+  // 탭 카운트
+  const pc = Object.keys(getKVPairs("paramsKV")).length;
+  const hc = Object.keys(getKVPairs("headersKV")).length;
+  $('#reqTabs .tab[data-p="pParams"]').textContent = "Query Params" + (pc?` (${pc})`:"");
+  $('#reqTabs .tab[data-p="pHeaders"]').textContent = "Headers" + (hc?` (${hc})`:"");
+}
+$("#url").addEventListener("input", updatePreview);
+
+// ── JSON 하이라이팅 ────────────────────────────────────
+function highlightJSON(jsonStr){
+  return esc(jsonStr).replace(
+    /("(\\.|[^"\\])*"\s*:)|("(\\.|[^"\\])*")|(\b-?\d+(\.\d+)?([eE][+\-]?\d+)?\b)|\b(true|false)\b|\bnull\b/g,
+    m => {
+      if(/:$/.test(m)) return '<span class="j-key">'+m+'</span>';
+      if(/^"/.test(m)) return '<span class="j-str">'+m+'</span>';
+      if(/^(true|false)$/.test(m)) return '<span class="j-bool">'+m+'</span>';
+      if(m==="null") return '<span class="j-null">'+m+'</span>';
+      return '<span class="j-num">'+m+'</span>';
+    });
+}
+
+// ── 상태 캡처/복원 ─────────────────────────────────────
+function captureState(){
+  return {
+    method:$("#method").value, url:$("#url").value,
+    params:getKVRows("paramsKV"), headers:getKVRows("headersKV"),
+    bodyType:currentBodyType(), bodyJson:$("#bodyJsonText").value,
+    bodyForm:getKVRows("formKV"), bodyRaw:$("#bodyRawText").value,
+    authType:currentAuthType(), bearer:$("#bearerTok").value,
+    basicUser:$("#basicUser").value, basicPass:$("#basicPass").value,
+    apikeyName:$("#apikeyName").value, apikeyVal:$("#apikeyVal").value,
+  };
+}
+function restoreState(s){
+  if(!s) return;
+  $("#method").value = s.method || "GET";
+  $("#url").value = s.url || "";
+  setKVRows("paramsKV", s.params); setKVRows("headersKV", s.headers);
+  setKVRows("formKV", s.bodyForm);
+  $("#bodyJsonText").value = s.bodyJson || "";
+  $("#bodyRawText").value = s.bodyRaw || "";
+  $(`input[name=bodyType][value="${s.bodyType||"json"}"]`).checked = true;
+  $(`input[name=bodyType]`).dispatchEvent(new Event("change"));
+  $("#bearerTok").value = s.bearer || "";
+  $("#basicUser").value = s.basicUser || ""; $("#basicPass").value = s.basicPass || "";
+  $("#apikeyName").value = s.apikeyName || "X-API-Key"; $("#apikeyVal").value = s.apikeyVal || "";
+  $(`input[name=authType][value="${s.authType||"none"}"]`).checked = true;
+  $(`input[name=authType]`).dispatchEvent(new Event("change"));
+  updatePreview();
+}
+
+// ── 사이드바 렌더 ──────────────────────────────────────
+function methodBadge(method){
+  const color = cssVar(METHOD_COLORS[method] || "--dim");
+  return `<span class="badge" style="background:${color}">${esc(method)}</span>`;
+}
+let activePresetTab = 0;
+function renderPresetTabs(){
+  $("#presetTabs").innerHTML = PRESET_GROUPS.map((g,i) =>
+    `<button class="tab ${i===activePresetTab?"active":""}" data-g="${i}">${esc(g.tab)}${g.corsBlocked?" ⚠":""}</button>`).join("");
+  $$("#presetTabs .tab").forEach(t => t.onclick = () => {
+    activePresetTab = +t.dataset.g; renderPresetTabs(); renderPresets();
+  });
+}
+function renderPresets(){
+  const g = PRESET_GROUPS[activePresetTab];
+  const items = g.items;
+  const note = g.corsBlocked
+    ? `<div class="empty" style="text-align:left;line-height:1.5">⚠ 이 거래소는 CORS를 허용하지 않습니다. 상단 'CORS 프록시 경유'를 켜면 호출될 수 있습니다(코빗은 서버가 프록시 IP를 차단해 실패할 수 있음). 또는 데스크톱 버전(api_tester.py)을 사용하세요.</div>`
+    : "";
+  $("#presets").innerHTML = note + items.map((p,i) => `
+    <div class="row" data-preset="${i}">
+      ${methodBadge(p.method)}
+      <div class="meta"><div class="name">${esc(p.name)}</div><div class="url">${esc(p.url)}</div></div>
+    </div>`).join("");
+  $$("#presets .row").forEach(r => r.onclick = () => loadPreset(items[+r.dataset.preset]));
+}
+function loadPreset(p){
+  restoreState({
+    method:p.method, url:p.url, params:p.params||[],
+    headers:[{key:"Accept",val:"application/json",checked:true}],
+    bodyType:p.bodyJson?"json":"none", bodyJson:p.bodyJson||"",
+    bodyForm:[], bodyRaw:"", authType:"none",
+  });
+}
+function renderFavorites(){
+  const box = $("#favorites");
+  if(!favorites.length){ box.innerHTML = `<div class="empty">히스토리 항목의 ✕ 옆 ⭐로 추가</div>`; return; }
+  box.innerHTML = favorites.map((f,i) => `
+    <div class="row" data-fav="${i}">
+      ${methodBadge(f.method)}
+      <div class="meta"><div class="name">${esc(f.name)}</div><div class="url">${esc(f.url||"")}</div></div>
+      <button class="del" data-delfav="${i}" title="삭제">✕</button>
+    </div>`).join("");
+  $$("#favorites .row").forEach(r => r.onclick = e => {
+    if(e.target.dataset.delfav!==undefined) return;
+    restoreState(favorites[+r.dataset.fav].state);
+  });
+  $$("#favorites .del").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    favorites.splice(+b.dataset.delfav,1); saveJSON(FAV_KEY,favorites); renderFavorites();
+  });
+}
+function renderHistory(){
+  const box = $("#history");
+  if(!history.length){ box.innerHTML = `<div class="empty">아직 기록 없음</div>`; return; }
+  box.innerHTML = history.map((h,i) => {
+    const sc = h.status ? statusColor(h.status) : "#8a97a6";
+    return `<div class="row" data-hist="${i}">
+      ${methodBadge(h.method)}
+      <div class="meta"><div class="name">${esc(h.url)}</div><div class="url">${esc(h.time)}</div></div>
+      <span class="st" style="background:${sc};color:#0e1116">${h.status||"ERR"}</span>
+      <button class="del" data-star="${i}" title="즐겨찾기">⭐</button>
+      <button class="del" data-delhist="${i}" title="삭제">✕</button>
+    </div>`;
+  }).join("");
+  $$("#history .row").forEach(r => r.onclick = e => {
+    if(e.target.dataset.star!==undefined || e.target.dataset.delhist!==undefined) return;
+    restoreState(history[+r.dataset.hist].state);
+  });
+  $$("#history .del[data-star]").forEach(b => b.onclick = e => {
+    e.stopPropagation(); saveFavorite(history[+b.dataset.star]);
+  });
+  $$("#history .del[data-delhist]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    history.splice(+b.dataset.delhist,1); saveJSON(HISTORY_KEY,history); renderHistory();
+  });
+}
+function saveFavorite(entry){
+  const def = `${entry.method}  ${(entry.url||"").slice(0,30)}`;
+  const name = prompt("즐겨찾기 이름:", def);
+  if(name===null) return;
+  const n = name.trim() || def;
+  favorites = favorites.filter(f => f.name !== n);
+  favorites.unshift({name:n, method:entry.method, url:entry.url, state:entry.state});
+  saveJSON(FAV_KEY,favorites); renderFavorites();
+}
+function pushHistory(status, elapsed){
+  history.unshift({
+    method:$("#method").value, url:$("#url").value, status, elapsed,
+    time:new Date().toLocaleTimeString("ko-KR",{hour12:false}), state:captureState(),
+  });
+  if(history.length > MAX_HISTORY) history.length = MAX_HISTORY;
+  saveJSON(HISTORY_KEY,history); renderHistory();
+}
+$("#clearHist").onclick = () => {
+  if(confirm("모든 히스토리를 삭제할까요?")){ history = []; saveJSON(HISTORY_KEY,history); renderHistory(); }
+};
+
+// ── 요청 전송 ──────────────────────────────────────────
+$("#send").onclick = sendRequest;
+$("#url").addEventListener("keydown", e => { if(e.key==="Enter") sendRequest(); });
+
+async function sendRequest(){
+  let url = $("#url").value.trim();
+  if(!url){ alert("URL을 입력하세요."); return; }
+  if(!/^https?:\/\//i.test(url)){ url = "https://" + url; $("#url").value = url; }
+
+  // URL 내 쿼리스트링 자동 파싱 → Params 탭으로
+  if(url.includes("?")){
+    const [base, qs] = url.split(/\?(.+)/);
+    const existing = getKVPairs("paramsKV");
+    qs.split("&").forEach(part => {
+      const eq = part.indexOf("=");
+      if(eq < 0) return;
+      const k = decodeURIComponent(part.slice(0,eq));
+      const v = decodeURIComponent(part.slice(eq+1));
+      if(!(k in existing)) addKVRow("paramsKV", k, v);
+    });
+    url = base; $("#url").value = base; updatePreview();
+  }
+
+  const method = $("#method").value;
+  const params = getKVPairs("paramsKV");
+  const headers = getKVPairs("headersKV");
+
+  // Auth
+  const at = currentAuthType();
+  if(at==="bearer"){ const t=$("#bearerTok").value.trim(); if(t) headers["Authorization"]="Bearer "+t; }
+  else if(at==="basic"){ headers["Authorization"]="Basic "+btoa($("#basicUser").value+":"+$("#basicPass").value); }
+  else if(at==="apikey"){ const n=$("#apikeyName").value.trim(), v=$("#apikeyVal").value.trim(); if(n&&v) headers[n]=v; }
+
+  // Body
+  let body;
+  const bt = currentBodyType();
+  if(method!=="GET" && method!=="HEAD" && bt!=="none"){
+    if(bt==="json"){
+      const raw = $("#bodyJsonText").value.trim();
+      if(raw){
+        try{ JSON.parse(raw); }catch(e){ alert("JSON Body 오류: "+e.message); return; }
+        body = raw; headers["Content-Type"] = headers["Content-Type"] || "application/json";
+      }
+    } else if(bt==="form"){
+      body = Object.entries(getKVPairs("formKV")).map(([k,v]) =>
+        encodeURIComponent(k)+"="+encodeURIComponent(v)).join("&");
+      headers["Content-Type"] = "application/x-www-form-urlencoded";
+    } else if(bt==="text"){
+      body = $("#bodyRawText").value;
+      headers["Content-Type"] = headers["Content-Type"] || "text/plain";
+    }
+  }
+
+  // 쿼리 스트링 부착
+  const qs = Object.entries(params).map(([k,v]) => encodeURIComponent(k)+"="+encodeURIComponent(v)).join("&");
+  const finalURL = qs ? url+"?"+qs : url;
+  const fetchURL = applyProxy(finalURL);
+
+  $("#send").disabled = true; $("#send").textContent = "전송 중…";
+  const start = performance.now();
+  try{
+    const resp = await fetch(fetchURL, {method, headers, body});
+    const text = await resp.text();
+    const elapsed = Math.round(performance.now() - start);
+    showResponse(resp, text, elapsed);
+    pushHistory(resp.status, elapsed);
+  }catch(err){
+    const elapsed = Math.round(performance.now() - start);
+    showError(err, elapsed, finalURL);
+    pushHistory(0, elapsed);
+  }finally{
+    $("#send").disabled = false; $("#send").textContent = "Send";
+  }
+}
+
+function showResponse(resp, text, elapsed){
+  const status = resp.status;
+  const sc = statusColor(status);
+  $("#resMetaWrap").innerHTML = `<div class="resmeta">
+    <span class="status" style="background:${sc};color:#0e1116">${status} ${esc(resp.statusText||"")}</span>
+    <span class="dim">시간: ${elapsed}ms</span>
+    <span class="dim">크기: ${formatSize(new Blob([text]).size)}</span>
+    <button class="copy" id="copyBtn">복사</button>
+  </div>`;
+  $("#copyBtn").onclick = () => navigator.clipboard.writeText(text);
+
+  // 힌트
+  const hintBox = $("#resHint");
+  if(status>=400){
+    const [title,msg] = HTTP_HINTS[status] || ["오류","서버 응답 Body를 확인하세요."];
+    hintBox.innerHTML = `<div class="hintbox ${status<500?"warn":""}"><b>${status} ${title}</b> — ${esc(msg)}</div>`;
+  } else hintBox.innerHTML = "";
+
+  // Pretty / Raw
+  const ct = resp.headers.get("content-type") || "";
+  const isJSON = ct.includes("json") || /^\s*[{\[]/.test(text);
+  if(isJSON){
+    try{
+      const pretty = JSON.stringify(JSON.parse(text), null, 2);
+      $("#prettyBox").innerHTML = highlightJSON(pretty);
+      $("#prettyBox").classList.add("code");
+    }catch{ $("#prettyBox").textContent = text; }
+  } else {
+    $("#prettyBox").textContent = text;
+  }
+  $("#rawBox").textContent = text;
+
+  // Headers
+  let hdrs = "";
+  resp.headers.forEach((v,k) => hdrs += `${k}: ${v}\n`);
+  $("#resHeadersBox").textContent = hdrs ||
+    "(브라우저 CORS 정책상 일부 응답 헤더는 노출되지 않을 수 있습니다)";
+}
+
+function showError(err, elapsed, url){
+  $("#resMetaWrap").innerHTML = `<div class="resmeta">
+    <span class="status" style="background:#f85149;color:#0e1116">ERROR</span>
+    <span class="dim">시간: ${elapsed}ms</span>
+  </div>`;
+  const isCors = err instanceof TypeError;
+  $("#resHint").innerHTML = `<div class="hintbox"><b>${esc(err.name)}</b> — ${esc(err.message)}</div>`;
+  let body = "오류 URL : " + url + "\n\n";
+  body += "오류 메시지:\n  " + err.message + "\n\n";
+  if(isCors){
+    body += "가능한 원인 (브라우저 fetch 한계):\n";
+    body += "  • 대상 API가 CORS(Access-Control-Allow-Origin)를 허용하지 않음\n";
+    body += "  • 서버가 없거나 네트워크 연결 불가\n";
+    body += "  • 혼합 콘텐츠(https 페이지에서 http API 호출) 차단\n\n";
+    body += "▶ 해결: 위 'CORS 프록시 경유' 체크박스를 켜고 다시 시도하세요.\n";
+    body += "  (단, 공개 프록시는 인증 토큰이 제3자 서버를 지나가니 민감 요청 주의)\n";
+    body += "  또는 데스크톱 버전(api_tester.py)을 사용하세요. Python requests는 CORS 제약이 없습니다.\n";
+  }
+  $("#prettyBox").textContent = body;
+  $("#prettyBox").classList.remove("code");
+  $("#rawBox").textContent = body;
+  $("#resHeadersBox").textContent = "(요청 실패 — 응답 헤더 없음)";
+}
+
+// ── CORS 프록시 토글 ───────────────────────────────────
+const PROXY_KEY = "apiTester.proxy";
+const DEFAULT_PROXY = "https://corsproxy.io/?url={url}";
+function proxyEnabled(){ return $("#proxyToggle").checked; }
+function applyProxy(url){
+  if(!proxyEnabled()) return url;
+  const tpl = $("#proxyUrl").value.trim() || DEFAULT_PROXY;
+  return tpl.includes("{url}") ? tpl.replace("{url}", encodeURIComponent(url))
+                               : tpl + encodeURIComponent(url);
+}
+function saveProxy(){
+  saveJSON(PROXY_KEY, {enabled:proxyEnabled(), tpl:$("#proxyUrl").value});
+}
+(function initProxy(){
+  const cfg = JSON.parse(localStorage.getItem(PROXY_KEY) || "null") || {};
+  $("#proxyUrl").value = cfg.tpl || DEFAULT_PROXY;
+  $("#proxyToggle").checked = !!cfg.enabled;
+  $("#proxyUrl").disabled = !cfg.enabled;
+  $("#proxyToggle").addEventListener("change", () => {
+    $("#proxyUrl").disabled = !proxyEnabled(); saveProxy(); updatePreview();
+  });
+  $("#proxyUrl").addEventListener("input", saveProxy);
+})();
+
+// ── 테마 토글 ──────────────────────────────────────────
+const THEME_KEY = "apiTester.theme";
+function applyTheme(t){
+  document.body.classList.toggle("light", t==="light");
+  $("#themeToggle").textContent = t==="light" ? "🌙 다크" : "☀ 라이트";
+}
+let theme = localStorage.getItem(THEME_KEY) || "dark";
+applyTheme(theme);
+$("#themeToggle").onclick = () => {
+  theme = theme==="light" ? "dark" : "light";
+  localStorage.setItem(THEME_KEY, theme); applyTheme(theme);
+};
+
+// ── 초기화 ─────────────────────────────────────────────
+addKVRow("headersKV", "Accept", "application/json");
+renderPresetTabs(); renderPresets(); renderFavorites(); renderHistory();
+updatePreview();
+</script>
+</body>
+</html>

@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEX Inspector — APK / AAB / DEX Analyzer</title>
+<style>
+  /* ── 다크 테마 · 모노스페이스 · Android 그린 액센트 ── */
+  :root{
+    --bg:#0e1116; --bg2:#161b22; --bg3:#1c232d; --line:#2a3441;
+    --fg:#d6dee8; --dim:#8a97a6; --accent:#3ddc84; --accent2:#2ea862;
+    --warn:#e3b341; --err:#f85149; --chip:#21303a;
+    --mono:"JetBrains Mono","Space Mono","SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--fg); font-family:var(--mono);
+    font-size:13px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent)}
+  .wrap{max-width:1280px;margin:0 auto;padding:18px 18px 60px}
+  header.app{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  header.app h1{font-size:18px;margin:0;color:var(--accent);letter-spacing:.5px}
+  header.app .sub{color:var(--dim);font-size:12px}
+  .privacy{
+    background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);
+    padding:8px 12px;border-radius:6px;color:var(--dim);font-size:12px;margin-bottom:14px;
+  }
+  .privacy b{color:var(--fg)}
+
+  /* 드롭존 */
+  #drop{
+    border:1.5px dashed var(--line);border-radius:10px;background:var(--bg2);
+    padding:30px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:14px;
+  }
+  #drop.over{border-color:var(--accent);background:var(--bg3)}
+  #drop .big{font-size:15px;color:var(--fg)}
+  #drop .hint{color:var(--dim);font-size:12px;margin-top:6px}
+  #fileInput{display:none}
+
+  /* 파일 바 */
+  .filebar{
+    display:none;align-items:center;gap:14px;flex-wrap:wrap;
+    background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:12px;
+  }
+  .filebar.on{display:flex}
+  .filebar .fname{color:var(--accent);font-weight:600}
+  .filebar .meta{color:var(--dim);font-size:12px}
+  .filebar .spacer{flex:1}
+  .filebar select{
+    background:var(--bg3);color:var(--fg);border:1px solid var(--line);border-radius:6px;
+    padding:5px 8px;font-family:var(--mono);font-size:12px;
+  }
+  .filebar button.reset{
+    background:transparent;border:1px solid var(--line);color:var(--dim);
+    padding:5px 10px;border-radius:6px;cursor:pointer;font-family:var(--mono);
+  }
+  .filebar button.reset:hover{color:var(--fg);border-color:var(--accent)}
+
+  /* 탭 */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+  .tabs.sub{margin-top:-2px}
+  .tab{
+    background:transparent;border:none;border-bottom:2px solid transparent;color:var(--dim);
+    padding:8px 16px;cursor:pointer;font-family:var(--mono);font-size:13px;
+  }
+  .tab:hover{color:var(--fg)}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .subtabs .tab{font-size:12px;padding:6px 12px}
+
+  .panel{display:none}
+  .panel.active{display:block}
+
+  /* 공통 카드/표 */
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+  .card h3{margin:0 0 10px;font-size:13px;color:var(--accent);font-weight:600}
+  table{border-collapse:collapse;width:100%;font-size:12px}
+  th,td{text-align:left;padding:5px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-weight:600;position:sticky;top:0;background:var(--bg2)}
+  td.num{text-align:right;color:var(--dim)}
+  tr:hover td{background:var(--bg3)}
+  .kv{display:grid;grid-template-columns:max-content 1fr;gap:4px 18px}
+  .kv .k{color:var(--dim)}
+  .kv .v{color:var(--fg);word-break:break-all}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:var(--chip);border:1px solid var(--line);border-radius:14px;padding:2px 10px;font-size:11px;color:var(--accent)}
+
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .toolbar input[type=text]{
+    background:var(--bg3);color:var(--fg);border:1px solid var(--line);border-radius:6px;
+    padding:6px 10px;font-family:var(--mono);font-size:12px;min-width:220px;
+  }
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .seg button{
+    background:var(--bg3);color:var(--dim);border:none;padding:5px 12px;cursor:pointer;
+    font-family:var(--mono);font-size:12px;border-right:1px solid var(--line);
+  }
+  .seg button:last-child{border-right:none}
+  .seg button.on{background:var(--accent);color:#06140c;font-weight:600}
+  .count{color:var(--dim);font-size:12px;margin-left:auto}
+
+  pre.xml{
+    background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px;
+    overflow:auto;max-height:520px;white-space:pre;color:var(--fg);font-size:12px;tab-size:2;
+  }
+  .btn{
+    background:var(--accent);color:#06140c;border:none;border-radius:6px;padding:6px 12px;
+    cursor:pointer;font-family:var(--mono);font-weight:600;font-size:12px;
+  }
+  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  .btn:hover{filter:brightness(1.08)}
+
+  /* 클래스 트리 (Finder 계층) */
+  .tree{font-size:12px}
+  .tnode{user-select:none}
+  .trow{display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:5px;cursor:pointer;white-space:nowrap}
+  .trow:hover{background:var(--bg3)}
+  .twist{display:inline-block;width:12px;color:var(--dim);transition:transform .1s}
+  .twist.open{transform:rotate(90deg)}
+  .ticon{color:var(--accent)}
+  .tpkg .tname{color:var(--fg)}
+  .tcls .tname{color:#cdd9e5}
+  .tbadge{color:var(--dim);font-size:11px;background:var(--chip);border-radius:10px;padding:0 7px;margin-left:4px}
+  .children{margin-left:16px;border-left:1px dotted var(--line);padding-left:4px}
+  .members{margin:2px 0 6px 30px;border-left:2px solid var(--accent2);padding:6px 10px;background:var(--bg);border-radius:0 6px 6px 0}
+  .members .mhdr{color:var(--dim);font-size:11px;margin:4px 0 2px}
+  .members .mitem{color:#cdd9e5;padding:1px 0;white-space:pre-wrap;word-break:break-word}
+  .members .mitem .flag{color:var(--accent)}
+  .members .empty{color:var(--dim);font-style:italic}
+  .clslink{color:#9ecbff}
+  .pkgpath{color:var(--dim)}
+
+  .status{
+    display:none;position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+    background:var(--bg3);border:1px solid var(--accent);color:var(--fg);
+    padding:8px 16px;border-radius:20px;font-size:12px;z-index:50;box-shadow:0 6px 24px #0008;
+  }
+  .status.on{display:block}
+  .msg{padding:10px 12px;border-radius:6px;margin-bottom:12px;font-size:12px}
+  .msg.warn{background:#3a2f12;border:1px solid var(--warn);color:#f0d68c}
+  .msg.err{background:#3a1414;border:1px solid var(--err);color:#ff9b94}
+  .empty-hint{color:var(--dim);padding:24px;text-align:center}
+  .mono-sm{font-size:11px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <h1>▢ DEX Inspector</h1>
+    <span class="sub">APK · AAB · DEX client-side analyzer — no build, works offline</span>
+  </header>
+
+  <div class="privacy">
+    🔒 <b>Files are parsed entirely in your browser and never uploaded anywhere.</b>
+    All processing happens in memory via <code>FileReader</code> / <code>arrayBuffer()</code> with no network transfer.
+  </div>
+
+  <div id="drop">
+    <div class="big">📦 Drag &amp; drop your <b>.apk · .aab · .dex</b> file here</div>
+    <div class="hint">Or click to choose — parsed 100% in your browser with no external libraries or servers</div>
+    <input type="file" id="fileInput" accept=".apk,.aab,.dex,.zip">
+  </div>
+
+  <div class="filebar" id="filebar">
+    <span class="fname" id="fbName">—</span>
+    <span class="meta" id="fbMeta"></span>
+    <span class="spacer"></span>
+    <button class="reset" id="btnReset">New file</button>
+  </div>
+
+  <div id="messages"></div>
+
+  <div class="tabs" id="topTabs"></div>
+
+  <!-- 매니페스트 -->
+  <div class="panel" id="panel-manifest">
+    <div class="card" id="mfSummary"></div>
+    <div class="card" id="mfPerms"></div>
+    <div class="card">
+      <h3>Decoded AndroidManifest.xml
+        <button class="btn ghost" id="btnCopyXml" style="float:right;margin-left:8px">Copy XML</button>
+        <button class="btn ghost" id="btnDlXml" style="float:right">Download</button>
+      </h3>
+      <pre class="xml" id="mfXml"></pre>
+    </div>
+  </div>
+
+  <!-- 네이티브 라이브러리 -->
+  <div class="panel" id="panel-native"></div>
+
+  <!-- 덱스 -->
+  <div class="panel" id="panel-dex">
+    <div class="tabs sub subtabs" id="dexTabs">
+      <button class="tab active" data-sub="classes">Classes</button>
+      <button class="tab" data-sub="header">Header</button>
+      <button class="tab" data-sub="strings">Strings</button>
+      <label class="meta" id="dexPickWrap" style="display:none;margin-left:auto;align-self:center">
+        DEX: <select id="dexPick"></select>
+      </label>
+    </div>
+    <div class="panel active" id="dex-classes"></div>
+    <div class="panel" id="dex-header"></div>
+    <div class="panel" id="dex-strings"></div>
+  </div>
+</div>
+
+<div class="status" id="status"></div>
+
+<script>
+"use strict";
+/* ====================================================================== *
+ *  DEX Inspector — 단일 파일 / 완전 오프라인 / 무업로드
+ *  ZIP · AXML · ARSC · DEX · ELF · protobuf(AAB) 파서를 순수 JS로 구현.
+ *  외부 라이브러리 없음. 압축 해제는 브라우저 내장 DecompressionStream 사용.
+ * ====================================================================== */
+
+/* ───────────────────── 0. 상수 ───────────────────── */
+
+// 프레임워크로 분류할 패키지 prefix (사용자가 쉽게 추가 가능)
+const FRAMEWORK_PREFIXES = [
+  "android.", "androidx.", "com.android.", "com.google.android.", "dalvik.",
+  "java.", "javax.", "sun.", "jdk.", "org.w3c.", "org.xml.", "org.xmlpull.", "org.json.",
+  "org.apache.", "junit.", "org.junit.", "kotlin.", "kotlinx.", "com.google.gson.",
+  "com.google.common.", "com.squareup.", "retrofit2.", "okhttp3.", "okio.",
+  "io.reactivex.", "rx.", "dagger.", "javax.inject.", "com.facebook.",
+  "com.bumptech.glide.", "org.intellij.", "org.jetbrains."
+];
+
+// 알려진 android attr resource-id → 이름
+const ANDROID_ATTRS = {
+  0x01010000:"theme", 0x01010001:"label", 0x01010002:"icon", 0x01010003:"name",
+  0x01010005:"allowBackup", 0x0101000f:"permission", 0x01010010:"required",
+  0x01010018:"authorities", 0x0101001f:"value", 0x0101020b:"maxSdkVersion",
+  0x0101020c:"minSdkVersion", 0x0101021b:"versionCode", 0x0101021c:"versionName",
+  0x01010270:"targetSdkVersion", 0x010100d0:"exported", 0x010100d4:"enabled",
+  0x010100d6:"process", 0x0101026f:"largeHeap", 0x01010572:"supportsRtl",
+  0x010103c9:"debuggable", 0x010102b2:"installLocation", 0x01010014:"hasCode",
+  0x0101000d:"resource", 0x0101001e:"configChanges", 0x01010176:"screenOrientation",
+  0x0101001d:"launchMode", 0x010102dc:"roundIcon", 0x0101055c:"appComponentFactory"
+};
+
+// ELF e_machine / e_type 매핑
+const ELF_MACHINE = {0x03:"x86", 0x3e:"x86-64", 0x28:"ARM", 0xb7:"AArch64", 0x08:"MIPS", 0xf3:"RISC-V", 0x2b:"SPARC v9", 0x14:"PowerPC"};
+const ELF_TYPE = {1:"REL", 2:"EXEC", 3:"DYN", 4:"CORE"};
+
+/* ───────────────────── 1. 저수준 헬퍼 ───────────────────── */
+
+// 올바른 byteOffset 으로 DataView 생성 (subarray 사용 시 안전)
+function dvOf(bytes){ return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength); }
+function hex2(b){ return (b & 0xff).toString(16).padStart(2,"0"); }
+function hex8(n){ return (n >>> 0).toString(16).padStart(8,"0"); }
+
+// ULEB128 (부호 없음) — DEX 등에서 사용
+function uleb128(bytes, p){
+  let result = 0, shift = 0, b;
+  do { b = bytes[p++]; result |= (b & 0x7f) << shift; shift += 7; } while (b & 0x80);
+  return { value: result >>> 0, next: p };
+}
+// protobuf varint (큰 값 대비 곱셈 누적)
+function readVarint(bytes, p){
+  let result = 0, mul = 1, b;
+  do { b = bytes[p++]; result += (b & 0x7f) * mul; mul *= 128; } while (b & 0x80);
+  return { value: result, next: p };
+}
+
+// MUTF-8 디코딩 — 한글/이모지 안전 (surrogate code unit 보존 후 결합)
+function decodeMUTF8(bytes, start){
+  let p = start;
+  const lr = uleb128(bytes, p); p = lr.next;   // utf16 길이(루프 종료는 0x00 기준)
+  const units = [];
+  for(;;){
+    const b = bytes[p++];
+    if (b === 0 || b === undefined) break;       // 단일 0x00 만 종료 (C0 80 은 임베디드 null)
+    if (b < 0x80) units.push(b);
+    else if ((b & 0xe0) === 0xc0){ const b2 = bytes[p++]; units.push(((b & 0x1f) << 6) | (b2 & 0x3f)); }
+    else if ((b & 0xf0) === 0xe0){ const b2 = bytes[p++], b3 = bytes[p++]; units.push(((b & 0x0f) << 12) | ((b2 & 0x3f) << 6) | (b3 & 0x3f)); }
+    else units.push(0xfffd);
+  }
+  return unitsToStr(units);
+}
+function unitsToStr(units){
+  let s = "";
+  for (let i = 0; i < units.length; i += 8192) s += String.fromCharCode.apply(null, units.slice(i, i + 8192));
+  return s;
+}
+
+// 타입 디스크립터 → dotted (예: Lcom/foo/Bar; → com.foo.Bar, [I → int[])
+function descToDotted(d){
+  if (!d) return "?";
+  let i = 0, dim = 0;
+  while (d[i] === "[") { dim++; i++; }
+  let base;
+  switch (d[i]){
+    case "V": base = "void"; break;
+    case "Z": base = "boolean"; break;
+    case "B": base = "byte"; break;
+    case "S": base = "short"; break;
+    case "C": base = "char"; break;
+    case "I": base = "int"; break;
+    case "J": base = "long"; break;
+    case "F": base = "float"; break;
+    case "D": base = "double"; break;
+    case "L": base = d.slice(i + 1, d.length - 1).replace(/\//g, "."); break;
+    default:  base = d.slice(i);
+  }
+  return base + "[]".repeat(dim);
+}
+// dotted 의 단순명 (마지막 . 뒤, 배열 차원 유지)
+function simpleName(dotted){
+  let base = dotted, dims = "";
+  while (base.endsWith("[]")) { base = base.slice(0, -2); dims += "[]"; }
+  const idx = base.lastIndexOf(".");
+  return (idx >= 0 ? base.slice(idx + 1) : base) + dims;
+}
+
+// access flags → 문자열 (kind: field|method|class)
+function flagStr(flags, kind){
+  if (!flags) return "0";
+  const out = [];
+  if (flags & 0x1)    out.push("public");
+  if (flags & 0x2)    out.push("private");
+  if (flags & 0x4)    out.push("protected");
+  if (flags & 0x8)    out.push("static");
+  if (flags & 0x10)   out.push("final");
+  if (flags & 0x20)   out.push("synchronized");
+  if (flags & 0x40)   out.push(kind === "field" ? "volatile" : "bridge");
+  if (flags & 0x80)   out.push(kind === "field" ? "transient" : "varargs");
+  if (flags & 0x100)  out.push("native");
+  if (flags & 0x200)  out.push("interface");
+  if (flags & 0x400)  out.push("abstract");
+  if (flags & 0x800)  out.push("strictfp");
+  if (flags & 0x1000) out.push("synthetic");
+  if (flags & 0x2000) out.push("annotation");
+  if (flags & 0x4000) out.push("enum");
+  if (flags & 0x10000) out.push("constructor");
+  if (flags & 0x20000) out.push("declared_synchronized");
+  return out.length ? out.join(" ") : "0";
+}
+
+function isFramework(dotted){
+  if (!dotted) return false;
+  return FRAMEWORK_PREFIXES.some(p => dotted.startsWith(p));
+}
+function fmtBytes(n){
+  if (n == null) return "—";
+  if (n < 1024) return n + " B";
+  if (n < 1024*1024) return (n/1024).toFixed(1) + " KB";
+  return (n/1024/1024).toFixed(2) + " MB";
+}
+
+/* ───────────────────── 2. ZIP 파서 (APK/AAB 컨테이너) ───────────────────── */
+
+function findEOCD(buf){
+  const dv = dvOf(buf), n = buf.length;
+  const min = Math.max(0, n - 65557);          // 주석 최대 65535 + EOCD 22
+  for (let i = n - 22; i >= min; i--){
+    if (dv.getUint32(i, true) === 0x06054b50) return i;
+  }
+  return -1;
+}
+
+// 중앙 디렉터리 메타데이터만 반환 (압축 해제 없음)
+function listZipEntries(buf){
+  const dv = dvOf(buf);
+  const eocd = findEOCD(buf);
+  if (eocd < 0) throw new Error("EOCD (0x06054b50) not found — not a ZIP");
+  let cdCount  = dv.getUint16(eocd + 10, true);
+  let cdOffset = dv.getUint32(eocd + 16, true);
+
+  // ZIP64
+  if (cdCount === 0xffff || cdOffset === 0xffffffff){
+    const loc = eocd - 20;
+    if (loc >= 0 && dv.getUint32(loc, true) === 0x07064b50){
+      const z64 = Number(dv.getBigUint64(loc + 8, true));
+      if (z64 >= 0 && z64 + 56 <= buf.length && dv.getUint32(z64, true) === 0x06064b50){
+        cdCount  = Number(dv.getBigUint64(z64 + 32, true));
+        cdOffset = Number(dv.getBigUint64(z64 + 48, true));
+      }
+    }
+  }
+
+  const td = new TextDecoder();
+  const entries = [];
+  let p = cdOffset;
+  for (let i = 0; i < cdCount; i++){
+    if (p + 46 > buf.length || dv.getUint32(p, true) !== 0x02014b50) break;
+    const method     = dv.getUint16(p + 10, true);
+    let compSize     = dv.getUint32(p + 20, true);
+    let uncompSize   = dv.getUint32(p + 24, true);
+    const nameLen    = dv.getUint16(p + 28, true);
+    const extraLen   = dv.getUint16(p + 30, true);
+    const commentLen = dv.getUint16(p + 32, true);
+    let localOff     = dv.getUint32(p + 42, true);
+    const name = td.decode(buf.subarray(p + 46, p + 46 + nameLen));
+
+    if (compSize === 0xffffffff || uncompSize === 0xffffffff || localOff === 0xffffffff){
+      let ep = p + 46 + nameLen, eEnd = ep + extraLen;
+      while (ep + 4 <= eEnd){
+        const id = dv.getUint16(ep, true), sz = dv.getUint16(ep + 2, true);
+        let q = ep + 4;
+        if (id === 0x0001){
+          if (uncompSize === 0xffffffff){ uncompSize = Number(dv.getBigUint64(q, true)); q += 8; }
+          if (compSize   === 0xffffffff){ compSize   = Number(dv.getBigUint64(q, true)); q += 8; }
+          if (localOff   === 0xffffffff){ localOff   = Number(dv.getBigUint64(q, true)); q += 8; }
+        }
+        ep += 4 + sz;
+      }
+    }
+    entries.push({ name, method, compSize, uncompSize, localHeaderOffset: localOff });
+    p += 46 + nameLen + extraLen + commentLen;
+  }
+  return entries;
+}
+
+// deflate-raw 풀기 (maxBytes 지정 시 그만큼만 읽고 중단)
+async function inflateRaw(comp, maxBytes){
+  if (typeof DecompressionStream === "undefined")
+    throw new Error("This browser does not support DecompressionStream");
+  const ds = new DecompressionStream("deflate-raw");
+  const writer = ds.writable.getWriter();
+  writer.write(comp); writer.close();
+  const reader = ds.readable.getReader();
+  const chunks = []; let total = 0;
+  for(;;){
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value); total += value.length;
+    if (maxBytes && total >= maxBytes){ try { await reader.cancel(); } catch(e){} break; }
+  }
+  const out = new Uint8Array(total);
+  let o = 0; for (const c of chunks){ out.set(c, o); o += c.length; }
+  return maxBytes ? out.slice(0, Math.min(maxBytes, out.length)) : out;
+}
+
+// 특정 항목 하나만 실제 압축 해제
+async function extractEntry(buf, entry, maxBytes){
+  const dv = dvOf(buf), lo = entry.localHeaderOffset;
+  if (dv.getUint32(lo, true) !== 0x04034b50) throw new Error("Local header signature mismatch: " + entry.name);
+  const nameLen  = dv.getUint16(lo + 26, true);
+  const extraLen = dv.getUint16(lo + 28, true);
+  const dataStart = lo + 30 + nameLen + extraLen;
+  if (entry.method === 0){ // stored
+    const end = maxBytes ? Math.min(dataStart + maxBytes, dataStart + entry.compSize) : dataStart + entry.compSize;
+    return buf.slice(dataStart, end);
+  }
+  if (entry.method === 8){ // deflate
+    const comp = buf.subarray(dataStart, dataStart + entry.compSize);
+    return await inflateRaw(comp, maxBytes);
+  }
+  throw new Error("Unsupported compression method (method=" + entry.method + "): " + entry.name);
+}
+
+// 주어진 항목들을 모두 풀어 {name, data} 배열로
+async function readEntries(buf, entries){
+  const out = [];
+  for (const e of entries) out.push({ name: e.name, data: await extractEntry(buf, e) });
+  return out;
+}
+// 이름 필터로 풀기 (스펙의 readZipEntries)
+async function readZipEntries(buf, nameFilter){
+  return readEntries(buf, listZipEntries(buf).filter(e => nameFilter(e.name)));
+}
+
+/* ───────────────────── 3. 문자열 풀 (AXML/ARSC 공용) ───────────────────── */
+
+function parseStringPool(bytes, off){
+  const dv = dvOf(bytes);
+  const stringCount  = dv.getUint32(off + 8, true);
+  const flags        = dv.getUint32(off + 16, true);
+  const stringsStart = dv.getUint32(off + 20, true);
+  const isUTF8 = (flags & 0x100) !== 0;
+  const td8 = new TextDecoder("utf-8"), td16 = new TextDecoder("utf-16le");
+  const out = new Array(stringCount);
+  for (let i = 0; i < stringCount; i++){
+    const offv = dv.getUint32(off + 28 + i * 4, true);
+    let p = off + stringsStart + offv;
+    if (isUTF8){
+      let len = bytes[p++]; if (len & 0x80) len = ((len & 0x7f) << 8) | bytes[p++];   // char 길이
+      let bl  = bytes[p++]; if (bl  & 0x80) bl  = ((bl  & 0x7f) << 8) | bytes[p++];   // byte 길이
+      out[i] = td8.decode(bytes.subarray(p, p + bl));
+    } else {
+      let len = bytes[p] | (bytes[p+1] << 8); p += 2;
+      if (len & 0x8000) { len = ((len & 0x7fff) << 16) | (bytes[p] | (bytes[p+1] << 8)); p += 2; }
+      out[i] = td16.decode(bytes.subarray(p, p + len * 2));
+    }
+  }
+  return out;
+}
+
+/* ───────────────────── 4. AXML 디코더 (바이너리 XML, APK) ───────────────────── */
+
+const RES_STRING_POOL = 0x0001, RES_XML_RESOURCE_MAP = 0x0180;
+const RES_XML_START_NS = 0x0100, RES_XML_END_NS = 0x0101;
+const RES_XML_START_ELEMENT = 0x0102, RES_XML_END_ELEMENT = 0x0103, RES_XML_CDATA = 0x0104;
+
+// 타입화된 속성 값 해석
+function typedValue(dataType, data, strings, resNames){
+  switch (dataType){
+    case 0x03: return strings && strings[data] != null ? strings[data] : "";   // STRING
+    case 0x10: return String(data);                                            // INT_DEC (부호 있음)
+    case 0x11: return "0x" + (data >>> 0).toString(16);                        // INT_HEX
+    case 0x12: return data !== 0 ? "true" : "false";                           // BOOLEAN
+    case 0x04: {                                                               // FLOAT
+      const b = new ArrayBuffer(4), v = new DataView(b);
+      v.setInt32(0, data, true); return String(v.getFloat32(0, true));
+    }
+    case 0x01: return resolveRef(data, resNames, "@");                         // REFERENCE
+    case 0x02: return resolveRef(data, resNames, "?");                         // ATTRIBUTE
+    case 0x1c: case 0x1d: {                                                    // COLOR (ARGB → #rrggbbaa)
+      const u = data >>> 0;
+      return "#" + hex2((u>>>16)&0xff) + hex2((u>>>8)&0xff) + hex2(u&0xff) + hex2((u>>>24)&0xff);
+    }
+    default: return "0x" + (data >>> 0).toString(16);
+  }
+}
+function resolveRef(data, resNames, sigil){
+  const h = hex8(data), pkg = (data >>> 24) & 0xff;
+  if (resNames && resNames[h]) return sigil + resNames[h];
+  if (pkg === 0x01) return sigil + "android:" + h;       // 프레임워크 리소스 (arsc에 이름 없음)
+  return sigil + h;
+}
+
+function parseStartElement(bytes, p, strings, resMap, resNames, nsUriToPrefix){
+  const dv = dvOf(bytes);
+  const headerSize = dv.getUint16(p + 2, true);
+  const nameIdx    = dv.getInt32(p + 20, true);
+  const attrStart  = dv.getUint16(p + 24, true);
+  let attrSize     = dv.getUint16(p + 26, true);
+  const attrCount  = dv.getUint16(p + 28, true);
+  if (attrSize < 20) attrSize = 20;
+  const tag = (nameIdx >= 0 && strings) ? strings[nameIdx] : "";
+  const attrs = [];
+  // ★ 속성 배열 시작 = p + headerSize + attributeStart  (흔한 오답: p+8+attrStart)
+  const base = p + headerSize + attrStart;
+  for (let i = 0; i < attrCount; i++){
+    const a = base + i * attrSize;
+    const ns       = dv.getInt32(a + 0, true);
+    const an       = dv.getInt32(a + 4, true);
+    const rawValue = dv.getInt32(a + 8, true);
+    const dataType = dv.getUint8(a + 15);
+    const data     = dv.getInt32(a + 16, true);
+    // 이름: 문자열 우선, 없으면 resource-map → android attr 이름
+    let name = (an >= 0 && strings && strings[an]) ? strings[an] : "";
+    if (!name){
+      const resId = (resMap && an >= 0 && an < resMap.length) ? resMap[an] : 0;
+      name = ANDROID_ATTRS[resId] || (resId ? "0x" + resId.toString(16) : "attr_" + an);
+    }
+    // 네임스페이스 접두사
+    let prefix = "";
+    if (ns >= 0){ const pi = nsUriToPrefix[ns]; if (pi != null && pi >= 0 && strings) prefix = strings[pi]; }
+    const fullName = prefix ? prefix + ":" + name : name;
+    // 값: rawValue 문자열 우선, 아니면 typed
+    let value;
+    if (rawValue >= 0 && strings && strings[rawValue] != null && strings[rawValue] !== "")
+      value = strings[rawValue];
+    else
+      value = typedValue(dataType, data, strings, resNames);
+    attrs.push({ name: fullName, value });
+  }
+  return { tag, attrs, children: [] };
+}
+
+function decodeAXML(bytes, resNames){
+  const dv = dvOf(bytes);
+  const total = bytes.length;
+  let cursor = (dv.getUint16(0, true) === 0x0003) ? dv.getUint16(2, true) : 0;
+  let strings = null, resMap = null;
+  const nsUriToPrefix = {};
+  const stack = []; let root = null;
+  let pendingXmlns = [];
+
+  while (cursor + 8 <= total){
+    const ctype = dv.getUint16(cursor, true);
+    const chSize = dv.getUint32(cursor + 4, true);
+    if (chSize < 8) break;
+
+    if (ctype === RES_STRING_POOL){
+      strings = parseStringPool(bytes, cursor);
+    } else if (ctype === RES_XML_RESOURCE_MAP){
+      const hsz = dv.getUint16(cursor + 2, true);
+      const count = (chSize - hsz) >> 2;
+      resMap = new Array(count);
+      for (let i = 0; i < count; i++) resMap[i] = dv.getUint32(cursor + hsz + i * 4, true);
+    } else if (ctype === RES_XML_START_NS){
+      const prefix = dv.getInt32(cursor + 16, true);
+      const uri    = dv.getInt32(cursor + 20, true);
+      nsUriToPrefix[uri] = prefix;
+      pendingXmlns.push({ prefix, uri });
+    } else if (ctype === RES_XML_START_ELEMENT){
+      const node = parseStartElement(bytes, cursor, strings, resMap, resNames, nsUriToPrefix);
+      if (pendingXmlns.length){
+        for (const x of pendingXmlns){
+          const pre = x.prefix >= 0 && strings ? strings[x.prefix] : "";
+          const uri = x.uri >= 0 && strings ? strings[x.uri] : "";
+          node.attrs.unshift({ name: pre ? "xmlns:" + pre : "xmlns", value: uri });
+        }
+        pendingXmlns = [];
+      }
+      if (stack.length) stack[stack.length - 1].children.push(node);
+      else root = node;
+      stack.push(node);
+    } else if (ctype === RES_XML_END_ELEMENT){
+      stack.pop();
+    } else if (ctype === RES_XML_CDATA){
+      const di = dv.getInt32(cursor + 16, true);
+      const txt = (di >= 0 && strings) ? strings[di] : "";
+      if (txt && txt.trim() && stack.length) stack[stack.length - 1].children.push({ text: txt.trim() });
+    }
+    cursor += chSize;
+  }
+  if (!root) throw new Error("AXML: root element not found");
+  return root;
+}
+
+/* ───────────────────── 5. resources.arsc 파서 ───────────────────── */
+
+function parseARSC(bytes){
+  const dv = dvOf(bytes);
+  const resNames = {};                                  // hex8 → "type/name"
+  if (dv.getUint16(0, true) !== 0x0002) return resNames; // RES_TABLE_TYPE
+  const tableHeaderSize = dv.getUint16(2, true);
+  const total = bytes.length;
+
+  // 테이블 헤더 이후 전역 문자열 풀 → 패키지들 순회
+  let cur = tableHeaderSize;
+  while (cur + 8 <= total){
+    const ctype = dv.getUint16(cur, true);
+    const csize = dv.getUint32(cur + 4, true);
+    if (csize < 8) break;
+    if (ctype === 0x0200) parseARSCPackage(bytes, cur, csize, resNames);
+    cur += csize;
+  }
+  return resNames;
+}
+
+function parseARSCPackage(bytes, pp, pkgSize, resNames){
+  const dv = dvOf(bytes);
+  const headerSize = dv.getUint16(pp + 2, true);
+  const pkgId = dv.getUint32(pp + 8, true);
+  const typeStringsOff = dv.getUint32(pp + 12 + 256, true);      // 패키지 시작 기준 상대
+  const keyStringsOff  = dv.getUint32(pp + 12 + 256 + 8, true);
+  const typeStrings = typeStringsOff ? parseStringPool(bytes, pp + typeStringsOff) : [];
+  const keyStrings  = keyStringsOff  ? parseStringPool(bytes, pp + keyStringsOff)  : [];
+
+  // 패키지 내부 청크 순회 (헤더 이후부터; 문자열 풀/typespec 은 건너뜀)
+  const end = pp + pkgSize;
+  let cur = pp + headerSize;
+  while (cur + 8 <= end){
+    const ctype = dv.getUint16(cur, true);
+    const csize = dv.getUint32(cur + 4, true);
+    if (csize < 8) break;
+    if (ctype === 0x0201) parseARSCType(bytes, cur, pkgId, typeStrings, keyStrings, resNames);
+    cur += csize;
+  }
+}
+
+function parseARSCType(bytes, off, pkgId, typeStrings, keyStrings, resNames){
+  const dv = dvOf(bytes);
+  const headerSize  = dv.getUint16(off + 2, true);
+  const typeId      = dv.getUint8(off + 8);            // 1-based
+  const flags       = dv.getUint8(off + 9);
+  const entryCount  = dv.getUint32(off + 12, true);
+  const entriesStart = dv.getUint32(off + 16, true);
+  const sparse = (flags & 0x01) !== 0;
+  const typeName = typeStrings[typeId - 1] || ("type" + typeId);
+
+  const idxBase = off + headerSize;
+  for (let i = 0; i < entryCount; i++){
+    let entryIndex, entryOff;
+    if (sparse){
+      entryIndex = dv.getUint16(idxBase + i * 4, true);
+      entryOff   = dv.getUint16(idxBase + i * 4 + 2, true) * 4;
+    } else {
+      entryIndex = i;
+      entryOff   = dv.getUint32(idxBase + i * 4, true);
+      if (entryOff === 0xffffffff) continue;            // NO_ENTRY
+    }
+    const ePos = off + entriesStart + entryOff;
+    if (ePos + 8 > bytes.length) continue;
+    const key = dv.getUint32(ePos + 4, true);           // ResTable_entry.key → keyStrings 인덱스
+    const entryName = keyStrings[key];
+    if (entryName == null) continue;
+    const resId = ((pkgId & 0xff) << 24) | ((typeId & 0xff) << 16) | (entryIndex & 0xffff);
+    resNames[hex8(resId)] = typeName + "/" + entryName;
+  }
+}
+
+/* ───────────────────── 6. protobuf 매니페스트 (AAB) ───────────────────── */
+
+function parseProtobuf(bytes, start, end){
+  const dv = dvOf(bytes);
+  start = start || 0; end = (end == null) ? bytes.length : end;
+  let p = start; const fields = [];
+  while (p < end){
+    const t = readVarint(bytes, p); p = t.next;
+    const field = t.value >>> 3, wire = t.value & 7;
+    if (wire === 0){ const v = readVarint(bytes, p); p = v.next; fields.push({ field, wire, value: v.value }); }
+    else if (wire === 2){ const len = readVarint(bytes, p); p = len.next; const d = bytes.subarray(p, p + len.value); p += len.value; fields.push({ field, wire, value: d }); }
+    else if (wire === 5){ const v = dv.getUint32(p, true); p += 4; fields.push({ field, wire, value: v }); }
+    else if (wire === 1){ p += 8; fields.push({ field, wire, value: null }); }
+    else break;
+  }
+  return fields;
+}
+const _utf8 = (b) => new TextDecoder().decode(b);
+
+function pbXmlAttr(fields){
+  let nsUri = "", name = "", value = "";
+  for (const f of fields){
+    if (f.wire !== 2) continue;
+    if (f.field === 1) nsUri = _utf8(f.value);
+    else if (f.field === 2) name = _utf8(f.value);
+    else if (f.field === 3) value = _utf8(f.value);
+  }
+  const prefix = /android/i.test(nsUri) ? "android" : "";
+  return { name: prefix ? prefix + ":" + name : name, value };
+}
+function pbXmlElement(fields){
+  // aapt2 Resources.proto: XmlElement { namespace_declaration=1, namespace_uri=2, name=3, attribute=4, child=5 }
+  let name = ""; const attrs = [], children = [];
+  for (const f of fields){
+    if (f.wire !== 2) continue;
+    if (f.field === 3) name = _utf8(f.value);
+    else if (f.field === 4) attrs.push(pbXmlAttr(parseProtobuf(f.value)));
+    else if (f.field === 5){ const c = pbXmlNode(parseProtobuf(f.value)); if (c) children.push(c); }
+  }
+  return { tag: name, attrs, children };
+}
+function pbXmlNode(fields){
+  for (const f of fields){
+    if (f.wire !== 2) continue;
+    if (f.field === 1) return pbXmlElement(parseProtobuf(f.value));   // element
+    if (f.field === 2){ const t = _utf8(f.value).trim(); return t ? { text: t } : null; }   // text
+  }
+  return null;
+}
+function pbToTree(bytes){
+  const root = pbXmlNode(parseProtobuf(bytes));
+  if (!root) throw new Error("Failed to parse protobuf manifest");
+  return root;
+}
+
+/* ───────────────────── 7. 매니페스트 진입점 ───────────────────── */
+
+function domToTree(el){
+  if (el.nodeType === 3){ const t = el.textContent.trim(); return t ? { text: t } : null; }
+  if (el.nodeType !== 1) return null;
+  const attrs = [];
+  for (const a of el.attributes) attrs.push({ name: a.name, value: a.value });
+  const children = [];
+  for (const c of el.childNodes){ const n = domToTree(c); if (n) children.push(n); }
+  return { tag: el.tagName, attrs, children };
+}
+
+function decodeManifest(data, resNames){
+  if (data[0] === 0x3c || (data[0] === 0xef && data[1] === 0xbb)){   // 평문 XML / BOM
+    const text = new TextDecoder().decode(data).replace(/^﻿/, "");
+    if (typeof DOMParser !== "undefined"){
+      const doc = new DOMParser().parseFromString(text, "application/xml");
+      if (doc.documentElement && doc.documentElement.nodeName !== "parsererror")
+        return domToTree(doc.documentElement);
+    }
+    return { tag: "manifest", attrs: [], children: [], _rawText: text };
+  }
+  const magic = data[0] | (data[1] << 8);
+  if (magic === 0x0003) return decodeAXML(data, resNames);   // AXML
+  return pbToTree(data);                                     // AAB protobuf
+}
+
+/* XML 직렬화 / 요약 */
+function escAttr(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function serializeXml(node, indent){
+  indent = indent || "";
+  if (node.text != null) return indent + node.text;
+  let s = indent + "<" + node.tag;
+  for (const a of node.attrs) s += " " + a.name + "=\"" + escAttr(a.value) + "\"";
+  const kids = node.children || [];
+  if (kids.length === 0) return s + "/>";
+  s += ">\n";
+  for (const c of kids) s += serializeXml(c, indent + "  ") + "\n";
+  return s + indent + "</" + node.tag + ">";
+}
+function getAttr(node, name){
+  const a = node.attrs && node.attrs.find(x => x.name === name);
+  return a ? a.value : undefined;
+}
+function findChild(node, tag){ return (node.children || []).find(c => c.tag === tag); }
+function collectAll(node, tag, acc){
+  acc = acc || [];
+  for (const c of node.children || []){ if (c.tag === tag) acc.push(c); collectAll(c, tag, acc); }
+  return acc;
+}
+function summarizeManifest(root){
+  const s = {};
+  s.package = getAttr(root, "package");
+  s.versionName = getAttr(root, "android:versionName");
+  s.versionCode = getAttr(root, "android:versionCode");
+  const usesSdk = findChild(root, "uses-sdk");
+  if (usesSdk){ s.minSdkVersion = getAttr(usesSdk, "android:minSdkVersion"); s.targetSdkVersion = getAttr(usesSdk, "android:targetSdkVersion"); }
+  s.permissions = collectAll(root, "uses-permission").map(n => getAttr(n, "android:name")).filter(Boolean);
+  const app = findChild(root, "application");
+  s.activities = app ? collectAll(app, "activity").length : 0;
+  s.services = app ? collectAll(app, "service").length : 0;
+  s.receivers = app ? collectAll(app, "receiver").length : 0;
+  return s;
+}
+
+/* ───────────────────── 8. ELF 헤더 ───────────────────── */
+
+function parseELF(bytes){
+  if (!(bytes[0] === 0x7f && bytes[1] === 0x45 && bytes[2] === 0x4c && bytes[3] === 0x46)) return null;
+  const cls = bytes[4], dataEnc = bytes[5], le = dataEnc !== 2;
+  const dv = dvOf(bytes);
+  const eType = dv.getUint16(16, le), eMachine = dv.getUint16(18, le);
+  return {
+    bits: cls === 2 ? 64 : 32,
+    endian: le ? "LE" : "BE",
+    type: eType, typeName: ELF_TYPE[eType] || ("0x" + eType.toString(16)),
+    machine: eMachine, machineName: ELF_MACHINE[eMachine] || ("0x" + eMachine.toString(16))
+  };
+}
+
+/* ───────────────────── 9. DEX 파서 ───────────────────── */
+
+// DEX 매직("dex\n") 검사 — 확장자만 .dex 인 비-DEX 파일 사전 필터용
+function isDexMagic(bytes){
+  return !!bytes && bytes.length >= 8 &&
+    bytes[0] === 0x64 && bytes[1] === 0x65 && bytes[2] === 0x78 && bytes[3] === 0x0a;
+}
+function parseDex(bytes){
+  const dv = dvOf(bytes);
+  if (!isDexMagic(bytes))
+    throw new Error("DEX magic (dex\\n) mismatch");
+  const version = String.fromCharCode(bytes[4], bytes[5], bytes[6]);
+  const checksum = dv.getUint32(8, true);
+  let signature = ""; for (let i = 0; i < 20; i++) signature += hex2(bytes[12 + i]);
+  const fileSize   = dv.getUint32(32, true);
+  const headerSize = dv.getUint32(36, true);
+  const endianTag  = dv.getUint32(40, true);
+
+  const stringIdsSize = dv.getUint32(56, true), stringIdsOff = dv.getUint32(60, true);
+  const typeIdsSize   = dv.getUint32(64, true), typeIdsOff   = dv.getUint32(68, true);
+  const protoIdsSize  = dv.getUint32(72, true), protoIdsOff  = dv.getUint32(76, true);
+  const fieldIdsSize  = dv.getUint32(80, true), fieldIdsOff  = dv.getUint32(84, true);
+  const methodIdsSize = dv.getUint32(88, true), methodIdsOff = dv.getUint32(92, true);
+  const classDefsSize = dv.getUint32(96, true), classDefsOff = dv.getUint32(100, true);
+  const dataSize      = dv.getUint32(104, true), dataOff     = dv.getUint32(108, true);
+
+  // string_ids → string_data offset
+  const stringOffsets = new Array(stringIdsSize);
+  for (let i = 0; i < stringIdsSize; i++) stringOffsets[i] = dv.getUint32(stringIdsOff + i * 4, true);
+  const stringCache = new Array(stringIdsSize);
+  function getString(i){
+    if (i < 0 || i >= stringIdsSize) return "";
+    if (stringCache[i] != null) return stringCache[i];
+    return (stringCache[i] = decodeMUTF8(bytes, stringOffsets[i]));
+  }
+
+  // type_ids
+  const typeStringIdx = new Array(typeIdsSize);
+  for (let i = 0; i < typeIdsSize; i++) typeStringIdx[i] = dv.getUint32(typeIdsOff + i * 4, true);
+  function typeName(i){ return (i < 0 || i >= typeIdsSize) ? "?" : getString(typeStringIdx[i]); }
+  function typeDotted(i){ return descToDotted(typeName(i)); }
+
+  function getProto(i){
+    const b = protoIdsOff + i * 12;
+    const shorty = dv.getUint32(b, true), ret = dv.getUint32(b + 4, true), poff = dv.getUint32(b + 8, true);
+    const params = [];
+    if (poff){ const c = dv.getUint32(poff, true); for (let k = 0; k < c; k++) params.push(dv.getUint16(poff + 4 + k * 2, true)); }
+    return { shorty, ret, params };
+  }
+  function getField(i){ const b = fieldIdsOff + i * 8; return { classIdx: dv.getUint16(b, true), typeIdx: dv.getUint16(b + 2, true), nameIdx: dv.getUint32(b + 4, true) }; }
+  function getMethod(i){ const b = methodIdsOff + i * 8; return { classIdx: dv.getUint16(b, true), protoIdx: dv.getUint16(b + 2, true), nameIdx: dv.getUint32(b + 4, true) }; }
+
+  function fieldStr(fi, af){
+    const f = getField(fi);
+    const t = simpleName(descToDotted(typeName(f.typeIdx)));
+    const fs = flagStr(af, "field");
+    return { text: (fs === "0" ? "" : fs + " ") + t + " " + getString(f.nameIdx) };
+  }
+  function methodStr(mi, af){
+    const m = getMethod(mi), proto = getProto(m.protoIdx);
+    const ret = simpleName(descToDotted(typeName(proto.ret)));
+    const params = proto.params.map(p => simpleName(descToDotted(typeName(p)))).join(", ");
+    const fs = flagStr(af, "method");
+    return { text: (fs === "0" ? "" : fs + " ") + ret + " " + getString(m.nameIdx) + "(" + params + ")" };
+  }
+
+  // class_defs
+  const classes = [];
+  for (let i = 0; i < classDefsSize; i++){
+    const b = classDefsOff + i * 32;
+    const classIdx     = dv.getUint32(b, true);
+    const accessFlags  = dv.getUint32(b + 4, true);
+    const superIdx     = dv.getUint32(b + 8, true);
+    const interfacesOff = dv.getUint32(b + 12, true);
+    const sourceFileIdx = dv.getUint32(b + 16, true);
+    const classDataOff  = dv.getUint32(b + 24, true);
+    classes.push({
+      i, classIdx, accessFlags, superIdx, interfacesOff, sourceFileIdx, classDataOff,
+      dotted: typeDotted(classIdx),
+      superDotted: superIdx === 0xffffffff ? null : typeDotted(superIdx),
+      _members: null
+    });
+  }
+
+  // class_data_item — 클래스 클릭 시 lazy 파싱
+  function getClassMembers(cls){
+    if (cls._members) return cls._members;
+    const res = { fields: [], methods: [] };
+    if (cls.classDataOff){
+      let p = cls.classDataOff, r;
+      r = uleb128(bytes, p); const sf = r.value; p = r.next;
+      r = uleb128(bytes, p); const inf = r.value; p = r.next;
+      r = uleb128(bytes, p); const dm = r.value; p = r.next;
+      r = uleb128(bytes, p); const vm = r.value; p = r.next;
+      let idx = 0;
+      for (let k = 0; k < sf; k++){ r = uleb128(bytes, p); idx += r.value; p = r.next; r = uleb128(bytes, p); const af = r.value; p = r.next; res.fields.push(fieldStr(idx, af)); }
+      idx = 0;
+      for (let k = 0; k < inf; k++){ r = uleb128(bytes, p); idx += r.value; p = r.next; r = uleb128(bytes, p); const af = r.value; p = r.next; res.fields.push(fieldStr(idx, af)); }
+      idx = 0;
+      for (let k = 0; k < dm; k++){ r = uleb128(bytes, p); idx += r.value; p = r.next; r = uleb128(bytes, p); const af = r.value; p = r.next; r = uleb128(bytes, p); p = r.next; res.methods.push(methodStr(idx, af)); }
+      idx = 0;
+      for (let k = 0; k < vm; k++){ r = uleb128(bytes, p); idx += r.value; p = r.next; r = uleb128(bytes, p); const af = r.value; p = r.next; r = uleb128(bytes, p); p = r.next; res.methods.push(methodStr(idx, af)); }
+    }
+    return (cls._members = res);
+  }
+
+  return {
+    version, checksum, signature, fileSize, headerSize, endianTag,
+    counts: { strings: stringIdsSize, types: typeIdsSize, protos: protoIdsSize, fields: fieldIdsSize, methods: methodIdsSize, classes: classDefsSize },
+    stringIdsSize, getString, typeName, typeDotted, classes, getClassMembers
+  };
+}
+
+// AAB 모듈명 추출 — "<module>/dex/classesN.dex" → "<module>" / 그 외(APK 루트 등) → ""
+function dexModule(name){
+  const m = name.match(/^([^/]+)\/dex\/classes\d*\.dex$/);
+  return m ? m[1] : "";
+}
+// 표시 이름 — DynamicFeature 모듈은 "<module>/classes.dex", base/APK 루트는 "classes.dex"
+function dexDisplayName(name){
+  const file = name.split("/").pop();
+  const mod = dexModule(name);
+  return (mod && mod !== "base") ? mod + "/" + file : file;
+}
+// 정렬: base/루트 먼저 → 모듈명 알파벳 → 모듈 내 classes.dex, classes2.dex … 자연 정렬
+function cmpDexName(a, b){
+  const rank = s => (s === "" || s === "base") ? "" : s;
+  const ra = rank(dexModule(a.name)), rb = rank(dexModule(b.name));
+  if (ra !== rb) return ra.localeCompare(rb);
+  const na = parseInt((a.name.match(/classes(\d*)\.dex$/) || [,"1"])[1] || "1", 10);
+  const nb = parseInt((b.name.match(/classes(\d*)\.dex$/) || [,"1"])[1] || "1", 10);
+  return na - nb || a.name.localeCompare(b.name);
+}
+
+/* ====================================================================== *
+ *  Node 자체 검증용 노출 (브라우저에서는 무시됨)
+ * ====================================================================== */
+if (typeof window === "undefined" && typeof globalThis !== "undefined"){
+  globalThis.DexInspector = {
+    decodeMUTF8, uleb128, readVarint, descToDotted, simpleName, flagStr,
+    parseStringPool, decodeAXML, parseARSC, parseELF, parseDex, isDexMagic,
+    dexModule, dexDisplayName, cmpDexName,
+    listZipEntries, extractEntry, readEntries, readZipEntries, inflateRaw,
+    pbToTree, decodeManifest, summarizeManifest, serializeXml, typedValue, resolveRef
+  };
+}
+
+/* ====================================================================== *
+ *  UI (브라우저 전용) — 위 순수 함수들을 화면에 연결
+ * ====================================================================== */
+if (typeof document !== "undefined"){
+
+const state = {
+  fileName: "",
+  resNames: null,
+  manifest: null,          // {tree, xml, summary}
+  nativeLibs: null,        // [{abi,name,full,compSize,uncompSize,elf}]
+  dexList: [],             // [{name, bytes, parsed}]
+  currentDex: 0,
+  classScope: "app",       // app | framework | all
+  classView: "tree",       // tree | table
+  classSearch: "",
+  strScope: "all",
+  strSearch: ""
+};
+
+const ROW_LIMIT = 2000;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+function showStatus(msg){ const el = $("status"); el.textContent = msg; el.classList.add("on"); }
+function hideStatus(){ $("status").classList.remove("on"); }
+function addMessage(text, kind){ $("messages").insertAdjacentHTML("beforeend", `<div class="msg ${kind||"warn"}">${esc(text)}</div>`); }
+function clearMessages(){ $("messages").innerHTML = ""; }
+
+/* ── UI 문자열 (영어 전용) ── 동적 렌더에서 t(key, ...args) 로 참조 ── */
+const T = {
+  statusReading: "Reading file…",
+  statusParsingRes: "Parsing resource table…",
+  statusDecodingManifest: "Decoding manifest…",
+  statusCheckingNative: "Checking native libraries…",
+  statusExtractingDex: "Extracting DEX…",
+  errNotZip: "Not a ZIP signature (PK)",
+  warnNoDecomp: "This browser does not support DecompressionStream, so compressed entries can't be extracted. A recent Chrome/Edge/Firefox is recommended.",
+  errArsc: "resources.arsc parse failed: ",
+  errManifest: "AndroidManifest decode failed: ",
+  errNative: "Native library check failed: ",
+  warnSkippedDex: "Excluded (not DEX format): ",
+  errNoDex: "No DEX found",
+  errProcessing: "Processing failed: ",
+  errDexParse: (name, msg) => `DEX parse failed (${name}): ${msg}`,
+  metaManifest: "Manifest ✓",
+  metaSo: n => `${n} .so`,
+  metaDex: n => `${n} dex`,
+  summary: "Summary",
+  permCount: "Permissions", activityCount: "Activities", serviceCount: "Services", receiverCount: "Receivers",
+  permsTitle: n => `Permissions (uses-permission) — ${n}`,
+  noPerms: "No permissions declared",
+  toastXmlCopied: "XML copied",
+  soTotalCount: "Total .so files", soUniqueCount: "Unique libraries", soTotalSize: "Total original size", supportedAbi: "Supported ABIs",
+  abiCount: n => `(${n})`,
+  thFileName: "File name", thArch: "Architecture", thElfType: "ELF type", thComp: "Compressed", thOrig: "Original",
+  elfType_REL: "relocatable", elfType_EXEC: "executable", elfType_DYN: "shared object", elfType_CORE: "core",
+  dexParseFail: "DEX parse failed",
+  dexHeaderTitle: "DEX header", dexVersion: "Version", sectionCounts: "Section counts",
+  strSearchPlaceholder: "Search strings…",
+  scopeApp: "App code", scopeFramework: "Framework", scopeAll: "All",
+  thString: "String", noMatchString: "No matching strings",
+  shown: (a, b) => `${a} / ${b} shown`,
+  viewTree: "Tree", viewTable: "Table",
+  clsSearchPlaceholder: "Search class names…",
+  clsCount: n => `${n} classes`,
+  noMatchClass: "No matching classes",
+  thClass: "Class", thAccessFlags: "Access flags", thSuperclass: "Superclass",
+  fieldsHdr: n => `Fields (${n})`, methodsHdr: n => `Methods (${n})`, noMembers: "No members",
+};
+function t(key, ...args){
+  const v = T[key];
+  if (v == null) return key;
+  return typeof v === "function" ? v(...args) : v;
+}
+function elfTypeLabel(elf){
+  if (!elf) return "—";
+  const desc = T["elfType_" + elf.typeName];
+  return desc ? `${elf.typeName} (${desc})` : elf.typeName;
+}
+
+/* ── 파일 입력 / 드롭존 ── */
+const drop = $("drop"), fileInput = $("fileInput");
+drop.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(ev => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => { const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+$("btnReset").addEventListener("click", () => location.reload());
+
+async function handleFile(file){
+  clearMessages();
+  state.fileName = file.name;
+  state.resNames = null; state.manifest = null; state.nativeLibs = null;
+  state.dexList = []; state.currentDex = 0;
+  try {
+    showStatus(t("statusReading"));
+    const buf = new Uint8Array(await file.arrayBuffer());
+    const lower = file.name.toLowerCase();
+    const isArchive = lower.endsWith(".apk") || lower.endsWith(".aab") || lower.endsWith(".zip");
+
+    if (isArchive){
+      if (!(buf[0] === 0x50 && buf[1] === 0x4b)) throw new Error(t("errNotZip"));
+      if (typeof DecompressionStream === "undefined")
+        addMessage(t("warnNoDecomp"), "warn");
+      const entries = listZipEntries(buf);
+
+      // resources.arsc (있으면)
+      const arscEntry = entries.find(e => /(^|\/)resources\.arsc$/.test(e.name));
+      if (arscEntry){
+        showStatus(t("statusParsingRes"));
+        try { const [a] = await readEntries(buf, [arscEntry]); state.resNames = parseARSC(a.data); }
+        catch(err){ console.warn("arsc 실패", err); addMessage(t("errArsc") + err.message, "warn"); }
+      }
+
+      // AndroidManifest.xml (있으면)
+      const mEntry = entries.find(e => /(^|\/)AndroidManifest\.xml$/.test(e.name));
+      if (mEntry){
+        showStatus(t("statusDecodingManifest"));
+        try {
+          const [m] = await readEntries(buf, [mEntry]);
+          const tree = decodeManifest(m.data, state.resNames);
+          state.manifest = { tree, xml: serializeXml(tree), summary: summarizeManifest(tree) };
+        } catch(err){ console.warn("manifest 실패", err); addMessage(t("errManifest") + err.message, "warn"); }
+      }
+
+      // 네이티브 라이브러리
+      showStatus(t("statusCheckingNative"));
+      const libEntries = entries.filter(e => /(^|\/)lib\/[^/]+\/[^/]+\.so$/.test(e.name));
+      if (libEntries.length){
+        try {
+          const libs = [];
+          for (const e of libEntries){
+            const mm = e.name.match(/lib\/([^/]+)\/([^/]+\.so)$/);
+            let elf = null;
+            try { const head = await extractEntry(buf, e, 64); elf = parseELF(head); } catch(err){ /* ELF 헤더 실패 무시 */ }
+            libs.push({ abi: mm ? mm[1] : "?", name: mm ? mm[2] : e.name, full: e.name, compSize: e.compSize, uncompSize: e.uncompSize, elf });
+          }
+          state.nativeLibs = libs;
+        } catch(err){ console.warn("native 실패", err); addMessage(t("errNative") + err.message, "warn"); }
+      }
+
+      // DEX 추출 (멀티덱스) — 확장자만 .dex 인 비-DEX(봉인/암호화) 파일은 제외
+      showStatus(t("statusExtractingDex"));
+      const dexEntries = entries.filter(e => /\.dex$/.test(e.name)).sort(cmpDexName);
+      const dexDatas = await readEntries(buf, dexEntries);
+      const skipped = [];
+      state.dexList = dexDatas
+        .filter(d => { const ok = isDexMagic(d.data); if (!ok) skipped.push(d.name); return ok; })
+        .map(d => ({ name: dexDisplayName(d.name), bytes: d.data, parsed: null }));
+      if (skipped.length) addMessage(t("warnSkippedDex") + skipped.join(", "), "warn");
+    } else {
+      // 단일 DEX
+      state.dexList = [{ name: file.name, bytes: buf, parsed: null }];
+    }
+
+    if (state.dexList.length === 0) throw new Error(t("errNoDex"));
+    hideStatus();
+    drop.style.display = "none";
+    $("filebar").classList.add("on");
+    buildUI();
+  } catch(err){
+    hideStatus();
+    console.error(err);
+    addMessage(t("errProcessing") + err.message, "err");
+  }
+}
+
+function getCurrentDex(){
+  const d = state.dexList[state.currentDex];
+  if (!d.parsed){ try { d.parsed = parseDex(d.bytes); } catch(err){ addMessage(t("errDexParse", d.name, err.message), "err"); d.parsed = null; } }
+  return d.parsed;
+}
+
+/* ── 상단 UI 구성 ── */
+function buildUI(){
+  // 파일 바
+  $("fbName").textContent = state.fileName;
+  const parts = [];
+  if (state.manifest) parts.push(t("metaManifest"));
+  if (state.nativeLibs && state.nativeLibs.length) parts.push(t("metaSo", state.nativeLibs.length));
+  parts.push(t("metaDex", state.dexList.length));
+  $("fbMeta").textContent = "· " + parts.join(" · ");
+
+  // DEX 선택 드롭다운 (멀티덱스)
+  const wrap = $("dexPickWrap"), pick = $("dexPick");
+  if (state.dexList.length > 1){
+    pick.innerHTML = state.dexList.map((d, i) => `<option value="${i}">${esc(d.name)}</option>`).join("");
+    pick.value = String(state.currentDex);
+    pick.onchange = () => { state.currentDex = parseInt(pick.value, 10); renderDex(); };
+    wrap.style.display = "";
+  } else wrap.style.display = "none";
+
+  buildTopTabs();
+}
+
+function buildTopTabs(){
+  const tabs = [];
+  if (state.manifest) tabs.push({ id: "manifest", label: "Manifest" });
+  if (state.nativeLibs && state.nativeLibs.length) tabs.push({ id: "native", label: "Native libraries" });
+  tabs.push({ id: "dex", label: "DEX" });
+
+  const bar = $("topTabs");
+  bar.innerHTML = tabs.map((tab, i) => `<button class="tab" data-top="${tab.id}">${esc(tab.label)}</button>`).join("");
+  bar.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => activateTop(btn.dataset.top)));
+
+  // 패널 표시 초기화
+  ["manifest","native","dex"].forEach(id => $("panel-" + id).classList.remove("active"));
+  // 현재 활성 탭 유지(언어 전환 시), 없으면 첫 탭
+  const keep = tabs.some(x => x.id === state.activeTop) ? state.activeTop : tabs[0].id;
+  activateTop(keep);
+
+  // 렌더
+  if (state.manifest) renderManifest();
+  if (state.nativeLibs && state.nativeLibs.length) renderNative();
+  renderDex();
+}
+
+function activateTop(id){
+  state.activeTop = id;
+  $("topTabs").querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.top === id));
+  ["manifest","native","dex"].forEach(p => $("panel-" + p).classList.toggle("active", p === id));
+}
+
+/* ── 매니페스트 렌더 ── */
+function renderManifest(){
+  const { summary: s, xml } = state.manifest;
+  const rows = [];
+  const add = (k, v) => { if (v != null && v !== "") rows.push(`<div class="k">${k}</div><div class="v">${esc(v)}</div>`); };
+  add("package", s.package);
+  add("versionName", s.versionName);
+  add("versionCode", s.versionCode);
+  add("minSdkVersion", s.minSdkVersion);
+  add("targetSdkVersion", s.targetSdkVersion);
+  add(t("permCount"), s.permissions.length);
+  add(t("activityCount"), s.activities);
+  add(t("serviceCount"), s.services);
+  add(t("receiverCount"), s.receivers);
+  $("mfSummary").innerHTML = `<h3>${t("summary")}</h3><div class="kv">${rows.join("")}</div>`;
+
+  $("mfPerms").innerHTML = `<h3>${esc(t("permsTitle", s.permissions.length))}</h3>` +
+    (s.permissions.length
+      ? `<div class="chips">${s.permissions.map(p => `<span class="chip" style="color:var(--fg)">${esc(p)}</span>`).join("")}</div>`
+      : `<div class="empty-hint">${t("noPerms")}</div>`);
+
+  $("mfXml").textContent = xml;
+  $("btnCopyXml").onclick = () => navigator.clipboard && navigator.clipboard.writeText(xml).then(() => showToast(t("toastXmlCopied")));
+  $("btnDlXml").onclick = () => downloadText("AndroidManifest.xml", xml);
+}
+function showToast(m){ showStatus(m); setTimeout(hideStatus, 1200); }
+function downloadText(name, text){
+  const blob = new Blob([text], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ── 네이티브 라이브러리 렌더 ── */
+function renderNative(){
+  const libs = state.nativeLibs;
+  const byAbi = {};
+  for (const l of libs){ (byAbi[l.abi] = byAbi[l.abi] || []).push(l); }
+  const abis = Object.keys(byAbi).sort();
+  const uniqueNames = new Set(libs.map(l => l.name)).size;
+  const totalUncomp = libs.reduce((a, l) => a + (l.uncompSize || 0), 0);
+
+  let html = `<div class="card"><h3>${t("summary")}</h3><div class="kv">
+    <div class="k">${t("soTotalCount")}</div><div class="v">${libs.length}</div>
+    <div class="k">${t("soUniqueCount")}</div><div class="v">${uniqueNames}</div>
+    <div class="k">${t("soTotalSize")}</div><div class="v">${fmtBytes(totalUncomp)}</div>
+    <div class="k">${t("supportedAbi")}</div><div class="v"><div class="chips">${abis.map(a => `<span class="chip">${esc(a)}</span>`).join("")}</div></div>
+  </div></div>`;
+
+  for (const abi of abis){
+    const rows = byAbi[abi].map(l => {
+      const arch = l.elf ? `${l.elf.bits}bit · ${l.elf.machineName}` : "—";
+      const etype = elfTypeLabel(l.elf);
+      return `<tr><td>${esc(l.name)}</td><td>${esc(arch)}</td><td>${esc(etype)}</td>
+        <td class="num">${fmtBytes(l.compSize)}</td><td class="num">${fmtBytes(l.uncompSize)}</td></tr>`;
+    }).join("");
+    html += `<div class="card"><h3>${esc(abi)} <span class="mono-sm">${esc(t("abiCount", byAbi[abi].length))}</span></h3>
+      <table><thead><tr><th>${t("thFileName")}</th><th>${t("thArch")}</th><th>${t("thElfType")}</th><th class="num">${t("thComp")}</th><th class="num">${t("thOrig")}</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+  }
+  $("panel-native").innerHTML = html;
+}
+
+/* ── 덱스 하위 탭 ── */
+$("dexTabs").querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => {
+  const sub = btn.dataset.sub;
+  $("dexTabs").querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
+  ["header","strings","classes"].forEach(s => $("dex-" + s).classList.toggle("active", s === sub));
+}));
+
+function renderDex(){
+  renderDexHeader();
+  renderDexStrings();
+  renderDexClasses();
+}
+
+function renderDexHeader(){
+  const dex = getCurrentDex();
+  if (!dex){ $("dex-header").innerHTML = `<div class="empty-hint">${t("dexParseFail")}</div>`; return; }
+  const c = dex.counts;
+  $("dex-header").innerHTML = `<div class="card"><h3>${t("dexHeaderTitle")}</h3><div class="kv">
+    <div class="k">${t("dexVersion")}</div><div class="v">${esc(dex.version)}</div>
+    <div class="k">checksum (adler32)</div><div class="v">0x${hex8(dex.checksum)}</div>
+    <div class="k">signature (SHA-1)</div><div class="v">${esc(dex.signature)}</div>
+    <div class="k">file_size</div><div class="v">${dex.fileSize.toLocaleString()} B</div>
+    <div class="k">header_size</div><div class="v">${dex.headerSize}</div>
+    <div class="k">endian_tag</div><div class="v">0x${hex8(dex.endianTag)} ${dex.endianTag===0x12345678?"(little)":""}</div>
+  </div></div>
+  <div class="card"><h3>${t("sectionCounts")}</h3><div class="kv">
+    <div class="k">strings</div><div class="v">${c.strings.toLocaleString()}</div>
+    <div class="k">types</div><div class="v">${c.types.toLocaleString()}</div>
+    <div class="k">protos</div><div class="v">${c.protos.toLocaleString()}</div>
+    <div class="k">fields</div><div class="v">${c.fields.toLocaleString()}</div>
+    <div class="k">methods</div><div class="v">${c.methods.toLocaleString()}</div>
+    <div class="k">classes</div><div class="v">${c.classes.toLocaleString()}</div>
+  </div></div>`;
+}
+
+/* ── 문자열 탭 ── */
+function strIsFramework(s){
+  let d = s;
+  if (s.startsWith("L") && s.endsWith(";")) d = descToDotted(s);
+  else if (s.indexOf("/") >= 0 && !/\s/.test(s)) d = s.replace(/\//g, ".");
+  return isFramework(d);
+}
+function renderDexStrings(){
+  const dex = getCurrentDex();
+  const panel = $("dex-strings");
+  if (!dex){ panel.innerHTML = `<div class="empty-hint">${t("dexParseFail")}</div>`; return; }
+
+  panel.innerHTML = `
+    <div class="toolbar">
+      <input type="text" id="strSearch" placeholder="${escAttr(t("strSearchPlaceholder"))}" value="${escAttr(state.strSearch)}">
+      <div class="seg" id="strScope">
+        <button data-v="app">${t("scopeApp")}</button>
+        <button data-v="framework">${t("scopeFramework")}</button>
+        <button data-v="all">${t("scopeAll")}</button>
+      </div>
+      <span class="count" id="strCount"></span>
+    </div>
+    <div class="card" style="padding:0"><table><thead><tr><th class="num">#</th><th>${t("thString")}</th></tr></thead>
+    <tbody id="strBody"></tbody></table></div>`;
+
+  panel.querySelectorAll("#strScope button").forEach(b => {
+    b.classList.toggle("on", b.dataset.v === state.strScope);
+    b.onclick = () => { state.strScope = b.dataset.v; renderDexStrings(); };
+  });
+  const search = panel.querySelector("#strSearch");
+  search.oninput = () => { state.strSearch = search.value; fillStrings(); };
+  fillStrings();
+}
+function fillStrings(){
+  const dex = getCurrentDex();
+  const q = state.strSearch.toLowerCase();
+  const body = $("strBody"); if (!body) return;
+  const rows = []; let total = 0;
+  for (let i = 0; i < dex.stringIdsSize; i++){
+    const s = dex.getString(i);
+    if (state.strScope === "app" && strIsFramework(s)) continue;
+    if (state.strScope === "framework" && !strIsFramework(s)) continue;
+    if (q && s.toLowerCase().indexOf(q) < 0) continue;
+    total++;
+    if (rows.length < ROW_LIMIT) rows.push(`<tr><td class="num">${i}</td><td>${esc(s)}</td></tr>`);
+  }
+  body.innerHTML = rows.join("") || `<tr><td colspan="2" class="empty-hint">${t("noMatchString")}</td></tr>`;
+  $("strCount").textContent = t("shown", Math.min(total, ROW_LIMIT).toLocaleString(), total.toLocaleString());
+}
+
+/* ── 클래스 탭 ── */
+function classInScope(c){
+  if (state.classScope === "app") return !isFramework(c.dotted);
+  if (state.classScope === "framework") return isFramework(c.dotted);
+  return true;
+}
+function renderDexClasses(){
+  const dex = getCurrentDex();
+  const panel = $("dex-classes");
+  if (!dex){ panel.innerHTML = `<div class="empty-hint">${t("dexParseFail")}</div>`; return; }
+
+  panel.innerHTML = `
+    <div class="toolbar">
+      <div class="seg" id="clsView">
+        <button data-v="tree">${t("viewTree")}</button>
+        <button data-v="table">${t("viewTable")}</button>
+      </div>
+      <div class="seg" id="clsScope">
+        <button data-v="app">${t("scopeApp")}</button>
+        <button data-v="framework">${t("scopeFramework")}</button>
+        <button data-v="all">${t("scopeAll")}</button>
+      </div>
+      <input type="text" id="clsSearch" placeholder="${escAttr(t("clsSearchPlaceholder"))}" value="${escAttr(state.classSearch)}">
+      <span class="count" id="clsCount"></span>
+    </div>
+    <div class="card" id="clsContainer"></div>`;
+
+  panel.querySelectorAll("#clsView button").forEach(b => {
+    b.classList.toggle("on", b.dataset.v === state.classView);
+    b.onclick = () => { state.classView = b.dataset.v; renderDexClasses(); };
+  });
+  panel.querySelectorAll("#clsScope button").forEach(b => {
+    b.classList.toggle("on", b.dataset.v === state.classScope);
+    b.onclick = () => { state.classScope = b.dataset.v; renderDexClasses(); };
+  });
+  const search = panel.querySelector("#clsSearch");
+  search.oninput = () => { state.classSearch = search.value; renderClassBody(); };
+  renderClassBody();
+}
+
+function renderClassBody(){
+  const dex = getCurrentDex();
+  const q = state.classSearch.toLowerCase();
+  const filtered = dex.classes.filter(c => classInScope(c) && (!q || c.dotted.toLowerCase().indexOf(q) >= 0));
+  $("clsCount").textContent = t("clsCount", filtered.length.toLocaleString());
+  const container = $("clsContainer");
+  container.innerHTML = "";
+  if (filtered.length === 0){ container.innerHTML = `<div class="empty-hint">${t("noMatchClass")}</div>`; return; }
+
+  if (state.classView === "table"){
+    const rows = filtered.slice(0, ROW_LIMIT).map(c =>
+      `<tr><td>${esc(c.dotted)}</td><td>${esc(flagStr(c.accessFlags,"class"))}</td><td>${esc(c.superDotted||"")}</td></tr>`).join("");
+    container.innerHTML = `<table><thead><tr><th>${t("thClass")}</th><th>${t("thAccessFlags")}</th><th>${t("thSuperclass")}</th></tr></thead><tbody>${rows}</tbody></table>` +
+      (filtered.length > ROW_LIMIT ? `<div class="mono-sm" style="padding:8px">${esc(t("shown", ROW_LIMIT, filtered.length))}</div>` : "");
+    return;
+  }
+
+  // 계층(트리) 보기
+  const tree = buildClassTree(filtered);
+  const root = document.createElement("div");
+  root.className = "tree";
+  // 최상위 패키지는 펼침, 그 외 접힘
+  for (const child of sortedChildren(tree)) root.appendChild(renderTreeNode(child, dex, true));
+  for (const cls of tree.classes) root.appendChild(renderClassRow(cls, dex));
+  container.appendChild(root);
+}
+
+function buildClassTree(classList){
+  const root = { name: "", children: new Map(), classes: [] };
+  for (const c of classList){
+    const lastDot = c.dotted.lastIndexOf(".");
+    const pkg = lastDot >= 0 ? c.dotted.slice(0, lastDot) : "";
+    const simple = lastDot >= 0 ? c.dotted.slice(lastDot + 1) : c.dotted;
+    let node = root;
+    if (pkg){
+      for (const part of pkg.split(".")){
+        if (!node.children.has(part)) node.children.set(part, { name: part, children: new Map(), classes: [] });
+        node = node.children.get(part);
+      }
+    }
+    node.classes.push(Object.assign({ simple }, c));
+  }
+  return root;
+}
+function sortedChildren(node){ return [...node.children.values()].sort((a, b) => a.name.localeCompare(b.name)); }
+function countClasses(node){
+  let n = node.classes.length;
+  for (const c of node.children.values()) n += countClasses(c);
+  return n;
+}
+// 단일 자식 패키지 접기 (com.foo.bar 한 줄) — 최상위 레이블 누락 방지
+function collapseChain(node){
+  let name = node.name, cur = node;
+  while (cur.classes.length === 0 && cur.children.size === 1){
+    const only = [...cur.children.values()][0];
+    name = name ? name + "." + only.name : only.name;
+    cur = only;
+  }
+  return { name, node: cur };
+}
+
+function renderTreeNode(rawNode, dex, expanded){
+  const { name, node } = collapseChain(rawNode);
+  const wrap = document.createElement("div"); wrap.className = "tnode tpkg";
+  const row = document.createElement("div"); row.className = "trow";
+  const tw = document.createElement("span"); tw.className = "twist" + (expanded ? " open" : ""); tw.textContent = "▶";
+  const icon = document.createElement("span"); icon.className = "ticon"; icon.textContent = "📁";
+  const nm = document.createElement("span"); nm.className = "tname"; nm.textContent = name;
+  const badge = document.createElement("span"); badge.className = "tbadge"; badge.textContent = countClasses(node);
+  row.append(tw, icon, nm, badge);
+  const kids = document.createElement("div"); kids.className = "children"; kids.style.display = expanded ? "" : "none";
+
+  let built = false;
+  const build = () => {
+    if (built) return; built = true;
+    for (const child of sortedChildren(node)) kids.appendChild(renderTreeNode(child, dex, false));
+    for (const cls of node.classes) kids.appendChild(renderClassRow(cls, dex));
+  };
+  if (expanded) build();
+  row.addEventListener("click", () => {
+    const open = kids.style.display === "none";
+    if (open) build();
+    kids.style.display = open ? "" : "none";
+    tw.classList.toggle("open", open);
+  });
+  wrap.append(row, kids);
+  return wrap;
+}
+
+function renderClassRow(cls, dex){
+  const wrap = document.createElement("div"); wrap.className = "tnode tcls";
+  const row = document.createElement("div"); row.className = "trow";
+  const tw = document.createElement("span"); tw.className = "twist"; tw.textContent = "▶";
+  const icon = document.createElement("span"); icon.className = "ticon"; icon.textContent = "📄";
+  const nm = document.createElement("span"); nm.className = "tname clslink"; nm.textContent = cls.simple || cls.dotted;
+  row.append(tw, icon, nm);
+  if (cls.superDotted && cls.superDotted !== "java.lang.Object"){
+    const sup = document.createElement("span"); sup.className = "pkgpath"; sup.style.marginLeft = "8px";
+    sup.textContent = ": " + simpleName(cls.superDotted); row.append(sup);
+  }
+  const panel = document.createElement("div"); panel.className = "members"; panel.style.display = "none";
+
+  let built = false;
+  row.addEventListener("click", () => {
+    const open = panel.style.display === "none";
+    if (open && !built){ built = true; panel.innerHTML = renderMembers(dex.getClassMembers(cls)); }
+    panel.style.display = open ? "" : "none";
+    tw.classList.toggle("open", open);
+  });
+  wrap.append(row, panel);
+  return wrap;
+}
+
+function renderMembers(m){
+  let html = "";
+  if (m.fields.length){
+    html += `<div class="mhdr">${esc(t("fieldsHdr", m.fields.length))}</div>`;
+    html += m.fields.map(f => `<div class="mitem">${esc(f.text)}</div>`).join("");
+  }
+  if (m.methods.length){
+    html += `<div class="mhdr">${esc(t("methodsHdr", m.methods.length))}</div>`;
+    html += m.methods.map(f => `<div class="mitem">${esc(f.text)}</div>`).join("");
+  }
+  if (!m.fields.length && !m.methods.length) html = `<div class="empty">${t("noMembers")}</div>`;
+  return html;
+}
+
+} // end if(document)
+</script>
+</body>
+</html>
