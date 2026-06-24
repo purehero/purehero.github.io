@@ -116,7 +116,7 @@
   <!-- ===================== 한국어 ===================== -->
   <main data-lang="ko">
     <h1>OTP 인증기 개인정보처리방침</h1>
-    <p class="updated">최종 업데이트: 2026-06-14</p>
+    <p class="updated">최종 업데이트: 2026-06-24</p>
 
     <h2>1. 핵심 요약</h2>
     <p>OTP 인증기("본 앱")는 2단계 인증(2FA) 코드를 사용자의 기기에서만 생성하며, OTP 비밀 키와 계정 정보를 당사 서버로 전송하지 않습니다. 계정 가입이 필요 없고, 코드 생성은 완전히 오프라인으로 동작합니다.</p>
@@ -128,7 +128,7 @@
       <li>생성된 OTP 코드</li>
       <li>내보내기 백업의 내용</li>
     </ul>
-    <p>위 데이터는 안드로이드 키스토어로 암호화된 기기 내 저장소에만 보관되며 당사 서버로 전송되지 않습니다. 당사는 별도의 분석(애널리틱스) SDK를 사용하지 않습니다.</p>
+    <p>위 데이터는 안드로이드 키스토어로 암호화된 기기 내 저장소에만 보관되며 당사 서버로 전송되지 않습니다. 본 앱은 광고·분석(애널리틱스)·추적 SDK를 일절 사용하지 않으며, 어떤 사용자 데이터도 수집하거나 네트워크로 전송하지 않습니다.</p>
 
     <h2>3. 데이터 보안(기기 내 처리)</h2>
     <p>본 앱은 인증 데이터를 보호하기 위해 다음을 적용합니다.</p>
@@ -136,32 +136,25 @@
       <li>OTP 비밀 키와 계정 정보는 안드로이드 키스토어 기반 암호화 저장소(EncryptedSharedPreferences)에 저장됩니다.</li>
       <li>클라우드·기기 백업이 비활성화되어 비밀 키가 기기 밖으로 백업되지 않습니다.</li>
       <li>내보내기 백업(파일·QR)은 사용자가 정한 비밀번호로 암호화됩니다.</li>
-      <li>릴리스 빌드는 화면 캡처·녹화를 차단하고, 선택적 앱 잠금(생체/기기 인증)을 제공합니다.</li>
+      <li>릴리스 빌드는 화면 캡처·녹화를 차단합니다.</li>
     </ul>
 
-    <h2>4. 제3자 SDK가 수집하는 것</h2>
-    <p>본 앱은 광고로 운영되며, 다음 서비스가 자체 정책에 따라 데이터를 처리합니다.</p>
-    <ul>
-      <li>광고(Google AdMob / Google Mobile Ads SDK): 광고 식별자(Advertising ID)와 대략적 기기·네트워크 정보 등을 광고 목적으로 사용합니다.</li>
-      <li>EEA/영국 사용자의 맞춤형 광고 동의는 Google의 동의 메커니즘을 따르며, 동의 거부 시 비개인화 광고로 동작합니다.</li>
-    </ul>
-    <p>자세한 내용은 <a href="https://policies.google.com/privacy">Google 개인정보처리방침</a>을 참고하십시오.</p>
+    <h2>4. 제3자 SDK 및 데이터 수집</h2>
+    <p>본 앱은 <strong>광고를 포함하지 않으며</strong>, 광고·분석·추적 SDK를 일절 사용하지 않습니다. 따라서 제3자가 본 앱을 통해 수집하는 사용자 데이터는 없습니다. 본 앱은 인터넷 권한도 요청하지 않습니다.</p>
 
     <h2>5. 권한 사용 목적</h2>
     <ul>
       <li>카메라: QR 코드를 스캔해 계정을 추가할 때만 사용. 카메라 영상은 저장·전송하지 않습니다.</li>
-      <li>생체/기기 인증: 선택적 앱 잠금에만 사용. 인증은 안드로이드 시스템이 처리하며 본 앱은 생체 정보에 접근하지 않습니다.</li>
-      <li>인터넷·네트워크 상태: 광고 요청에만 사용. OTP 데이터에는 사용하지 않습니다.</li>
-      <li>광고 ID(AD_ID): 광고 SDK가 광고 목적으로 사용.</li>
     </ul>
+    <p>본 앱은 카메라 외 별도 권한을 요청하지 않습니다. 인터넷·네트워크 권한이 없어 어떤 데이터도 네트워크로 전송하지 않습니다.</p>
 
     <h2>6. 데이터 보관 및 삭제</h2>
     <ul>
       <li>OTP 계정과 비밀 키는 기기 내 암호화 저장소에 보관됩니다.</li>
       <li>앱에서 계정을 삭제하거나 앱을 제거하면 관련 데이터가 함께 삭제됩니다.</li>
       <li>내보낸 백업 파일·QR은 사용자가 만든 파일이며, 사용자가 직접 보관·삭제·전달합니다.</li>
-      <li>광고 식별자는 기기 설정에서 재설정/삭제할 수 있습니다.</li>
     </ul>
+    <p>데이터 삭제 방법에 대한 자세한 안내는 <a href="delete.html">데이터 삭제 안내 페이지</a>를 참고하세요.</p>
 
     <h2>7. 아동 개인정보(Families)</h2>
     <p>본 앱은 만 14세(한국) / 만 13세(미국 COPPA) 미만의 아동을 대상으로 하지 않으며, 아동의 개인정보를 의도적으로 수집하지 않습니다.</p>
@@ -169,9 +162,9 @@
     <h2>8. 국가별 권리</h2>
     <ul>
       <li>한국(PIPA): 정보주체는 자신의 개인정보 열람·정정·삭제·처리정지를 요구할 수 있습니다.</li>
-      <li>EEA/영국(GDPR): 접근·정정·삭제·처리제한·이동권·이의제기 권리가 있습니다. 광고 동의는 변경할 수 있습니다.</li>
+      <li>EEA/영국(GDPR): 접근·정정·삭제·처리제한·이동권·이의제기 권리가 있습니다.</li>
     </ul>
-    <p>위 권리 행사 및 광고 동의 관련 문의는 아래 연락처로 가능합니다.</p>
+    <p>위 권리 행사에 관한 문의는 아래 연락처로 가능합니다. 다만 본 앱은 어떤 데이터도 수집·전송하지 않으므로, 모든 데이터는 사용자의 기기 내에서 직접 관리·삭제할 수 있습니다.</p>
 
     <h2>9. 변경</h2>
     <p>SDK 추가·정책 변경 시 본 방침을 갱신하고 갱신일을 표기합니다.</p>
@@ -183,7 +176,7 @@
   <!-- ===================== English ===================== -->
   <main data-lang="en" class="show">
     <h1>Authenticator Privacy Policy</h1>
-    <p class="updated">Last updated: 2026-06-14</p>
+    <p class="updated">Last updated: 2026-06-24</p>
 
     <h2>1. Summary</h2>
     <p>Authenticator ("the app") generates two-factor (2FA) codes entirely on your device and never sends your OTP secret keys or account details to our servers. No account is required, and code generation works fully offline.</p>
@@ -195,7 +188,7 @@
       <li>The OTP codes that are generated</li>
       <li>The contents of exported backups</li>
     </ul>
-    <p>This data is stored only in encrypted on-device storage backed by the Android Keystore and is never transmitted to our servers. We do not use a separate analytics SDK.</p>
+    <p>This data is stored only in encrypted on-device storage backed by the Android Keystore and is never transmitted to our servers. The app uses no advertising, analytics, or tracking SDKs and does not collect or transmit any user data over the network.</p>
 
     <h2>3. Security of your data (on-device)</h2>
     <p>To protect your authentication data, the app:</p>
@@ -203,32 +196,25 @@
       <li>stores OTP secret keys and account details in encrypted storage backed by the Android Keystore (EncryptedSharedPreferences);</li>
       <li>disables cloud/device backup so secret keys are never backed up off the device;</li>
       <li>encrypts exported backups (file or QR) with a password you set;</li>
-      <li>blocks screen capture/recording in release builds and offers an optional app lock (biometric/device authentication).</li>
+      <li>blocks screen capture/recording in release builds.</li>
     </ul>
 
-    <h2>4. What third-party SDKs collect</h2>
-    <p>The app is ad-supported. The following services process data under their own policies:</p>
-    <ul>
-      <li>Ads (Google AdMob / Google Mobile Ads SDK): advertising identifier (Advertising ID) and coarse device/network information, used for advertising.</li>
-      <li>For users in the EEA/UK, consent for personalized ads is handled through Google's consent mechanism; if consent is declined, ads run in a non-personalized mode.</li>
-    </ul>
-    <p>See the <a href="https://policies.google.com/privacy">Google Privacy Policy</a> for details.</p>
+    <h2>4. Third-party SDKs and data collection</h2>
+    <p>The app contains <strong>no ads</strong> and uses no advertising, analytics, or tracking SDKs. As a result, no third party collects any user data through the app. The app does not even request the Internet permission.</p>
 
     <h2>5. Permissions</h2>
     <ul>
       <li>Camera: used only to scan a QR code when adding an account. Camera images are not stored or transmitted.</li>
-      <li>Biometric / device authentication: used only for the optional app lock. Authentication is handled by the Android system; the app has no access to your biometric data.</li>
-      <li>Internet / network state: used only to request ads; never for your OTP data.</li>
-      <li>Advertising ID (AD_ID): used by the ad SDK for advertising.</li>
     </ul>
+    <p>The app requests no permissions other than the camera. It has no Internet or network permission and transmits no data over the network.</p>
 
     <h2>6. Data retention and deletion</h2>
     <ul>
       <li>OTP accounts and secret keys are stored in encrypted storage on your device.</li>
       <li>Deleting an account in the app or uninstalling the app removes the related data.</li>
       <li>Exported backup files/QRs are files you created; you keep, delete, and share them yourself.</li>
-      <li>You can reset or delete your advertising ID in your device settings.</li>
     </ul>
+    <p>For detailed instructions on deleting your data, see the <a href="delete.html">Data Deletion page</a>.</p>
 
     <h2>7. Children (Families)</h2>
     <p>The app is not directed to children under 14 (Korea) / 13 (US COPPA) and does not knowingly collect children's personal information.</p>
@@ -236,9 +222,9 @@
     <h2>8. Your rights by region</h2>
     <ul>
       <li>Korea (PIPA): you may request access, correction, deletion, or suspension of processing of your personal data.</li>
-      <li>EEA/UK (GDPR): you have rights of access, rectification, erasure, restriction, portability, and objection. You can change your ad consent.</li>
+      <li>EEA/UK (GDPR): you have rights of access, rectification, erasure, restriction, portability, and objection.</li>
     </ul>
-    <p>To exercise these rights or for ad-consent questions, contact us below.</p>
+    <p>To exercise these rights, contact us below. Note that the app collects and transmits no data, so all of your data can be managed and deleted directly on your device.</p>
 
     <h2>9. Changes</h2>
     <p>We will update this policy and its date when we add SDKs or change practices.</p>

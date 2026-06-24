@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTP 인증기 데이터 삭제 / Data Deletion</title>
+<style>
+  :root {
+    --fg: #1a1a1a; --muted: #666; --accent: #1a73e8;
+    --border: #e5e7eb; --bg: #ffffff; --note-bg: #f3f4f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color: var(--fg); background: var(--bg); line-height: 1.7;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
+  header {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 12px; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px;
+  }
+  .brand { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.01em; }
+  .brand .dot { color: var(--accent); }
+  .lang-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+  .lang-toggle button {
+    appearance: none; border: 0; background: transparent; padding: 7px 16px;
+    font-size: 0.85rem; font-weight: 600; color: var(--muted); cursor: pointer;
+  }
+  .lang-toggle button.active { background: var(--accent); color: #fff; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; letter-spacing: -0.02em; }
+  .updated { color: var(--muted); font-size: 0.9rem; margin: 0 0 24px; }
+  h2 { font-size: 1.15rem; margin: 32px 0 8px; letter-spacing: -0.01em; }
+  p { margin: 8px 0; }
+  ul { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+  strong { font-weight: 700; }
+  footer {
+    margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 0.85rem;
+  }
+  [data-lang] { display: none; }
+  [data-lang].show { display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Authenticator<span class="dot">.</span></div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button id="btn-ko" onclick="setLang('ko')">한국어</button>
+      <button id="btn-en" class="active" onclick="setLang('en')">English</button>
+    </div>
+  </header>
+
+  <!-- ===================== 한국어 ===================== -->
+  <main data-lang="ko">
+    <h1>데이터 삭제 요청</h1>
+    <p class="updated">앱: com.purehero.otp · 최종 업데이트: 2026-06-24</p>
+
+    <p>OTP 인증기는 사용자 <strong>계정이 없으며</strong>, OTP 비밀 키·계정 이름·생성된 코드를
+    <strong>수집하거나 전송하지 않습니다</strong>. 모든 데이터는 기기 내부에만 암호화(안드로이드 키스토어)되어
+    저장되며, 당사나 어떤 서버로도 전송되지 않습니다. 기기 밖으로 나가는 데이터가 없으므로, 당사가 서버에서
+    삭제할 데이터도 없습니다.</p>
+
+    <h2>데이터 삭제 방법</h2>
+    <ul>
+      <li><strong>개별 항목 삭제:</strong> 앱을 열고 해당 계정을 선택한 뒤 삭제를 누릅니다.</li>
+      <li><strong>전체 삭제:</strong> 앱을 삭제(제거)하면 기기에 저장된 모든 OTP 데이터가 영구히 제거됩니다.</li>
+      <li><strong>내보낸 백업:</strong> 직접 만든 백업 파일·QR 코드는 사용자가 통제하므로, 저장한 위치에서
+          직접 삭제하시면 됩니다.</li>
+    </ul>
+
+    <h2>문의</h2>
+    <p>데이터 삭제 관련 문의: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+    <p><a href="index.html">← 개인정보처리방침으로 돌아가기</a></p>
+  </main>
+
+  <!-- ===================== English ===================== -->
+  <main data-lang="en" class="show">
+    <h1>Data Deletion Request</h1>
+    <p class="updated">App: com.purehero.otp · Last updated: 2026-06-24</p>
+
+    <p>OTP Authenticator has <strong>no user accounts</strong> and does <strong>not collect or
+    transmit</strong> your OTP secret keys, account names, or generated codes. All data is stored
+    only on your device in encrypted storage (Android Keystore) and is never sent to us or any
+    server. Because nothing leaves your device, there is no server-side data for us to delete.</p>
+
+    <h2>How to delete your data</h2>
+    <ul>
+      <li><strong>Delete a single entry:</strong> open the app, select the account, and choose Delete.</li>
+      <li><strong>Delete everything:</strong> uninstall the app. Uninstalling permanently removes all
+          stored OTP data from your device.</li>
+      <li><strong>Exported backups:</strong> backup files and QR codes you created are under your own
+          control — delete those files yourself wherever you saved them.</li>
+    </ul>
+
+    <h2>Contact</h2>
+    <p>For any data deletion question, contact: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+    <p><a href="index.html">← Back to Privacy Policy</a></p>
+  </main>
+
+  <footer>
+    <span data-lang="ko">© 2026 Authenticator</span>
+    <span data-lang="en" class="show">© 2026 Authenticator</span>
+  </footer>
+</div>
+
+<script>
+  function setLang(lang) {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-lang]').forEach(function (el) {
+      el.classList.toggle('show', el.getAttribute('data-lang') === lang);
+    });
+    document.getElementById('btn-ko').classList.toggle('active', lang === 'ko');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  }
+</script>
+</body>
+</html>
