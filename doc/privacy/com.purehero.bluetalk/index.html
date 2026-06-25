@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlueTalk (BTalk) — Privacy Policy / 개인정보처리방침</title>
+<style>
+  :root { --fg:#14181f; --muted:#5b6166; --line:#dbe2ec; --accent:#1B4FA0; --accent2:#4A90E2; --bg:#ffffff; --note-bg:#eef4fc; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#f3f6fb; color:var(--fg);
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+         line-height:1.65; }
+  .wrap { max-width:760px; margin:0 auto; padding:32px 20px 80px; }
+  header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;
+           border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:28px; }
+  .brand { display:flex; align-items:center; gap:10px; font-size:1.4rem; font-weight:700; letter-spacing:-0.01em; }
+  .brand .dot { width:16px; height:16px; border-radius:50%; background:linear-gradient(135deg,var(--accent2),var(--accent)); }
+  .lang-toggle { display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; }
+  .lang-toggle button { appearance:none; border:0; background:transparent; padding:7px 16px;
+                        font-size:0.85rem; font-weight:600; color:var(--muted); cursor:pointer; }
+  .lang-toggle button.active { background:var(--accent); color:#fff; }
+  h1 { font-size:1.7rem; margin:0 0 4px; letter-spacing:-0.02em; }
+  .updated { color:var(--muted); font-size:0.9rem; margin:0 0 24px; }
+  h2 { font-size:1.15rem; margin:32px 0 8px; letter-spacing:-0.01em; }
+  p { margin:8px 0; }
+  ul { margin:8px 0; padding-left:22px; }
+  li { margin:4px 0; }
+  a { color:var(--accent); }
+  strong { font-weight:700; }
+  code { background:var(--note-bg); padding:1px 6px; border-radius:6px; font-size:0.9em; }
+  .note { background:var(--note-bg); border-radius:10px; padding:14px 16px;
+          font-size:0.92rem; color:var(--fg); margin:0 0 24px; }
+  footer { margin-top:48px; padding-top:16px; border-top:1px solid var(--line);
+           color:var(--muted); font-size:0.85rem; }
+  [data-lang] { display:none; }
+  [data-lang].show { display:block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="dot"></span>BlueTalk</div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button id="btn-ko" onclick="setLang('ko')">한국어</button>
+      <button id="btn-en" class="active" onclick="setLang('en')">English</button>
+    </div>
+  </header>
+
+  <!-- 한국어 버전 -->
+  <main data-lang="ko">
+    <h1>BlueTalk 개인정보처리방침</h1>
+    <p class="updated">최종 업데이트: 2026-06-25</p>
+
+    <p class="note">BlueTalk(패키지 <code>com.purehero.bluetalk</code>, 이하 "앱")는 서버 없이 두 기기를 블루투스 또는 같은 Wi-Fi(LAN)로 직접 연결하는 오프라인·프라이버시 우선 P2P 메신저입니다.</p>
+
+    <h2>1. 핵심 요약</h2>
+    <p>개발자는 <strong>어떤 서버도 운영하지 않으며</strong>, 사용자의 개인정보를 수집·저장·전송하지 않습니다. 대화·음성·사진·파일·통화는 <strong>두 기기 사이에서만</strong> 직접 오갑니다. 계정 가입이 필요 없고, 광고·분석·추적 SDK를 포함하지 않습니다.</p>
+
+    <h2>2. 기기에만 저장하는 정보 (외부 전송 없음)</h2>
+    <ul>
+      <li>대화 내용 — 상대별 메시지 기록.</li>
+      <li>내 프로필 — 표시 이름, 프로필 사진.</li>
+      <li>주고받은 사진·동영상·파일·음성 메시지.</li>
+    </ul>
+    <p>위 데이터는 앱 전용 저장소에만 보관되며 당사 서버로 전송되지 않습니다 — 서버 자체가 없습니다. 앱을 삭제하면 이 데이터는 함께 삭제됩니다.</p>
+
+    <h2>3. 기기 간 직접 전송되는 정보</h2>
+    <p>다음 정보는 연결된 상대 기기로 직접 전송됩니다. 전송 경로는 블루투스 또는 같은 Wi-Fi(LAN)이며 당사를 거치지 않습니다.</p>
+    <ul>
+      <li>보낸 메시지·음성 메시지·사진·동영상·파일.</li>
+      <li>공유한 연락처 카드(사용자가 선택한 경우).</li>
+      <li>표시 이름과 프로필 사진(연결 시).</li>
+      <li>통화 중 음성/영상 데이터.</li>
+    </ul>
+
+    <h2>4. 온디바이스 AI (프로필 사진 변환)</h2>
+    <p>프로필 사진을 애니메이션 캐릭터풍으로 바꾸는 기능은 <strong>전적으로 기기 내부에서</strong> 처리됩니다(온디바이스 AI, ONNX Runtime). 사진은 당사 서버를 포함한 어떤 외부로도 전송되지 않습니다.</p>
+
+    <h2>5. 권한 사용 목적</h2>
+    <ul>
+      <li>블루투스 / 근처 기기: 주변 기기를 검색하고 연결하기 위해 사용합니다.</li>
+      <li>위치(정밀): 일부 안드로이드 버전·기기는 블루투스 검색에 위치 권한을 요구합니다. 블루투스 검색 목적에만 쓰이며 위치 정보를 수집·저장·전송하지 않습니다.</li>
+      <li>마이크: 음성 통화와 음성 메시지 녹음에 사용합니다.</li>
+      <li>카메라: 사진 촬영과 영상 통화에 사용합니다.</li>
+      <li>알림: 새 메시지·수신 통화를 알리기 위해 사용합니다.</li>
+      <li>포그라운드 서비스: 통화·연결을 백그라운드에서 유지하기 위해 사용합니다.</li>
+    </ul>
+
+    <h2>6. 데이터 보관 및 삭제</h2>
+    <ul>
+      <li>모든 데이터는 기기 내 앱 전용 저장소에만 보관됩니다.</li>
+      <li>앱 내에서 대화·항목을 삭제하거나 앱을 제거하면 관련 데이터가 함께 삭제됩니다.</li>
+      <li>당사는 서버를 운영하지 않으므로 별도의 삭제 요청 절차가 필요하지 않습니다.</li>
+    </ul>
+
+    <h2>7. 하지 않는 것</h2>
+    <p>계정·로그인 없음. 서버·클라우드 없음. 광고 SDK·분석 SDK·추적 도구 없음. 데이터 판매 없음.</p>
+
+    <h2>8. 제3자 제공</h2>
+    <p>앱은 사용자 데이터를 제3자에게 제공하지 않습니다. 당사가 수집하는 데이터 자체가 없습니다.</p>
+
+    <h2>9. 아동 개인정보(Families)</h2>
+    <p>본 앱은 개인정보를 수집하지 않으며, 만 14세(한국) / 만 13세(미국 COPPA) 미만 아동의 개인정보를 의도적으로 수집하지 않습니다.</p>
+
+    <h2>10. 국가별 권리</h2>
+    <ul>
+      <li>한국(PIPA): 정보주체는 자신의 개인정보 열람·정정·삭제·처리정지를 요구할 수 있습니다. 단, 앱은 개인정보를 수집·보관하지 않으므로 모든 데이터는 사용자 기기 내에 있으며 사용자가 직접 관리·삭제합니다.</li>
+      <li>EEA/영국(GDPR): 접근·정정·삭제·처리제한·이동권·이의제기 권리가 있습니다. 당사는 개인정보를 처리·보관하지 않습니다.</li>
+    </ul>
+
+    <h2>11. 변경</h2>
+    <p>본 방침이 변경되면 본 문서와 스토어 등록 정보를 통해 갱신하고 갱신일을 표기합니다.</p>
+
+    <h2>12. 문의처</h2>
+    <p>이메일: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+  </main>
+
+  <!-- 영어 버전 -->
+  <main data-lang="en" class="show">
+    <h1>BlueTalk Privacy Policy</h1>
+    <p class="updated">Last updated: 2026-06-25</p>
+
+    <p class="note">BlueTalk (package <code>com.purehero.bluetalk</code>, "the app") is an offline-first, privacy-first peer-to-peer messenger that connects two devices directly over Bluetooth or the same Wi-Fi (LAN), with no server in between.</p>
+
+    <h2>1. Summary</h2>
+    <p>The developer <strong>operates no servers</strong> and does not collect, store, or transmit your personal data. Your chats, voice, photos, files, and calls travel <strong>only between the two devices</strong>. No account or sign-up is required, and no advertising, analytics, or tracking SDKs are included.</p>
+
+    <h2>2. What we store on your device (never uploaded)</h2>
+    <ul>
+      <li>Chat history — per-peer message records.</li>
+      <li>Your profile — display name, profile photo.</li>
+      <li>Photos, videos, files, and voice messages you exchange.</li>
+    </ul>
+    <p>This data lives in app-private storage and never reaches our servers — we have none. Uninstalling the app removes this data.</p>
+
+    <h2>3. What is sent directly between devices</h2>
+    <p>The following is sent directly to the connected peer, over Bluetooth or the same Wi-Fi (LAN), never through us:</p>
+    <ul>
+      <li>Messages, voice messages, photos, videos, and files you send.</li>
+      <li>A contact card, if you choose to share one.</li>
+      <li>Your display name and profile photo (on connect).</li>
+      <li>Voice/video data during a call.</li>
+    </ul>
+
+    <h2>4. On-device AI (profile photo styling)</h2>
+    <p>The feature that turns your profile photo into an anime-character style is processed <strong>entirely on your device</strong> (on-device AI, ONNX Runtime). Your photo is never uploaded anywhere, including our servers.</p>
+
+    <h2>5. Permissions</h2>
+    <ul>
+      <li>Bluetooth / Nearby devices: to discover and connect to nearby devices.</li>
+      <li>Location (precise): some Android versions/devices require location permission for Bluetooth scanning. It is used only for Bluetooth discovery; no location data is collected, stored, or transmitted.</li>
+      <li>Microphone: for voice calls and recording voice messages.</li>
+      <li>Camera: for taking photos and video calls.</li>
+      <li>Notifications: to alert you to new messages and incoming calls.</li>
+      <li>Foreground service: to keep a call/connection alive in the background.</li>
+    </ul>
+
+    <h2>6. Data retention and deletion</h2>
+    <ul>
+      <li>All data stays in app-private storage on your device.</li>
+      <li>Deleting chats/items in the app, or uninstalling the app, removes the related data.</li>
+      <li>We run no servers, so no separate deletion-request process is needed.</li>
+    </ul>
+
+    <h2>7. What we do NOT do</h2>
+    <p>No accounts, no login. No servers or cloud. No advertising SDKs, analytics SDKs, or tracking tools. We do not sell your data.</p>
+
+    <h2>8. Third parties</h2>
+    <p>The app does not share user data with third parties. There is no collected data to share.</p>
+
+    <h2>9. Children (Families)</h2>
+    <p>The app collects no personal information and is not directed to children under 14 (Korea) / 13 (US COPPA); it does not knowingly collect children's personal information.</p>
+
+    <h2>10. Your rights by region</h2>
+    <ul>
+      <li>Korea (PIPA): you may request access, correction, deletion, or suspension of processing of your personal data. Because the app neither collects nor stores personal data, all data remains on your device under your own control.</li>
+      <li>EEA/UK (GDPR): you have rights of access, rectification, erasure, restriction, portability, and objection. We do not process or store your personal data.</li>
+    </ul>
+
+    <h2>11. Changes</h2>
+    <p>We will update this policy and its date when our practices change.</p>
+
+    <h2>12. Contact</h2>
+    <p>Email: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+  </main>
+
+  <footer>
+    <span data-lang="ko">© 2026 purehero · BlueTalk</span>
+    <span data-lang="en" class="show">© 2026 purehero · BlueTalk</span>
+  </footer>
+</div>
+
+<script>
+  function setLang(lang) {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-lang]').forEach(function (el) {
+      el.classList.toggle('show', el.getAttribute('data-lang') === lang);
+    });
+    document.getElementById('btn-ko').classList.toggle('active', lang === 'ko');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  }
+  // 기본값은 영어. 브라우저가 한국어면 한국어로 시작.
+  if ((navigator.language || 'en').toLowerCase().indexOf('ko') === 0) {
+    setLang('ko');
+  }
+</script>
+</body>
+</html>
