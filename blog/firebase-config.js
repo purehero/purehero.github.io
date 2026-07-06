@@ -26,6 +26,6 @@ export const ADMIN_EMAILS = [
 
 // 블로그 메타 정보 (헤더·타이틀에 사용)
 export const SITE = {
-  title: "purehero · Tech Guide",
+  title: "맑은(준)호걸(호)",
   tagline: "하우투 · 팁 · 기술 노트",
 };
