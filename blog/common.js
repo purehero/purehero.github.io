@@ -7,6 +7,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc,
   updateDoc, deleteDoc, query, where, orderBy, serverTimestamp,
+  limit, limitToLast,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getStorage, ref as storageRef, uploadBytes, getDownloadURL,
@@ -30,11 +31,23 @@ export const auth = getAuth(app);
 // Firestore / Storage / Auth 재-export (페이지에서 편하게 쓰도록)
 export {
   collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
-  query, where, orderBy, serverTimestamp,
+  query, where, orderBy, serverTimestamp, limit, limitToLast,
   storageRef, uploadBytes, getDownloadURL,
   GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
 };
 export { SITE, ADMIN_EMAILS };
+
+// ---- 파비콘 (모든 페이지 공통, 404 방지) -------------------------------------
+(function injectFavicon() {
+  if (document.querySelector("link[rel='icon']")) return;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+    <polygon points='50,6 90,28 90,72 50,94 10,72 10,28'
+      fill='none' stroke='#3b66d6' stroke-width='11' stroke-linejoin='round'/></svg>`;
+  const link = document.createElement("link");
+  link.rel = "icon";
+  link.href = "data:image/svg+xml," + encodeURIComponent(svg);
+  document.head.appendChild(link);
+})();
 
 // ---- 인증 -------------------------------------------------------------------
 // ---- 테마 (= 전체 템플릿) ---------------------------------------------------
@@ -146,6 +159,15 @@ export function excerptFrom(markdown, len = 140) {
   return text.length > len ? text.slice(0, len).trim() + "…" : text;
 }
 
+// 대략적인 읽기 시간(분). 한국어 기준 분당 ~600자.
+export function readingTime(markdown) {
+  const text = (markdown || "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\s/g, "");
+  return Math.max(1, Math.round(text.length / 600));
+}
+
 export function slugifyHeading(text) {
   return (text || "")
     .toLowerCase()
@@ -233,6 +255,25 @@ export function mountHeader(active = "") {
 export function mountFooter() {
   const f = document.createElement("footer");
   f.className = "site-footer";
-  f.innerHTML = `<a href="../">← purehero.github.io</a> · Firebase Firestore + Storage`;
+  f.innerHTML = `
+    <div class="fbrand"><span class="hex">⬡</span> ${escapeHtml(SITE.title)}</div>
+    <div class="flinks">
+      <a href="./index.html">홈</a>
+      <a href="../">purehero.github.io</a>
+    </div>
+    <div class="fcopy">${escapeHtml(SITE.tagline)} · Powered by Firebase Firestore + Storage</div>`;
   document.body.appendChild(f);
+
+  // 맨 위로 버튼 (모든 페이지 공통)
+  const top = document.createElement("button");
+  top.className = "to-top";
+  top.type = "button";
+  top.title = "맨 위로";
+  top.setAttribute("aria-label", "맨 위로");
+  top.textContent = "↑";
+  top.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  document.body.appendChild(top);
+  window.addEventListener("scroll", () => {
+    top.classList.toggle("show", window.scrollY > 600);
+  }, { passive: true });
 }

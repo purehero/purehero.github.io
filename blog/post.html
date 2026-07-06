@@ -15,6 +15,7 @@
 </script>
 </head>
 <body>
+<div class="read-progress" id="readProgress"></div>
 
 <main class="layout" id="layout">
   <article>
@@ -47,9 +48,9 @@
 <script type="module">
 import {
   db, auth, collection, doc, getDoc, getDocs, addDoc, deleteDoc,
-  query, orderBy, serverTimestamp,
+  query, where, orderBy, serverTimestamp, limit, limitToLast,
   renderMarkdown, highlightWithin, decorateLinks, slugifyHeading,
-  fmtDate, escapeHtml, getParam, mountHeader, mountFooter,
+  fmtDate, escapeHtml, getParam, mountHeader, mountFooter, readingTime,
   onUser, isAdmin, login,
 } from "./common.js";
 
@@ -101,23 +102,94 @@ function renderArticle() {
     ? `<img class="cover" src="${escapeHtml(post.coverImage)}" alt="">` : "";
   root.innerHTML = `
     <div class="article-head">
+      <span class="eyebrow">${escapeHtml((post.tags || [])[0] || "GUIDE")}</span>
+      <h1>${escapeHtml(post.title)}</h1>
       <div class="meta">
         <span>${fmtDate(post.createdAt)}</span>
-        ${post.authorEmail ? `<span>· ${escapeHtml(post.authorEmail)}</span>` : ""}
+        <span>·</span><span>약 ${readingTime(post.content)}분 읽기</span>
+        ${post.authorEmail ? `<span>·</span><span>${escapeHtml(post.authorEmail)}</span>` : ""}
       </div>
-      <h1>${escapeHtml(post.title)}</h1>
-      <div class="meta">${tags}</div>
+      <div class="tags">${tags}</div>
       ${cover}
     </div>
-    <div class="article" id="articleBody"></div>`;
+    <div class="article" id="articleBody"></div>
+    <div class="btn-row share-row">
+      <button class="btn" id="copyLinkBtn" type="button">🔗 링크 복사</button>
+    </div>
+    <nav class="post-nav" id="postNav"></nav>`;
 
   const body = document.getElementById("articleBody");
   body.innerHTML = renderMarkdown(post.content);
   highlightWithin(body);
   decorateLinks(body);
+  addCopyButtons(body);
   buildToc(body);
   document.getElementById("comments").classList.remove("hidden");
+
+  const copyBtn = document.getElementById("copyLinkBtn");
+  copyBtn.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      copyBtn.textContent = "✓ 복사됨";
+      setTimeout(() => { copyBtn.textContent = "🔗 링크 복사"; }, 1600);
+    } catch { alert("복사에 실패했습니다."); }
+  };
+  loadNav();
 }
+
+// 코드 블록마다 복사 버튼 부착
+function addCopyButtons(container) {
+  container.querySelectorAll("pre").forEach((pre) => {
+    const btn = document.createElement("button");
+    btn.className = "code-copy";
+    btn.type = "button";
+    btn.textContent = "복사";
+    btn.onclick = async () => {
+      try {
+        const code = pre.querySelector("code");
+        await navigator.clipboard.writeText(code ? code.innerText : pre.innerText);
+        btn.textContent = "복사됨 ✓";
+        setTimeout(() => { btn.textContent = "복사"; }, 1500);
+      } catch { /* noop */ }
+    };
+    pre.appendChild(btn);
+  });
+}
+
+// 이전(과거)/다음(최신) 글 — 홈과 동일한 복합 색인(published+createdAt) 사용
+async function loadNav() {
+  const nav = document.getElementById("postNav");
+  if (!nav || !post.createdAt) return;
+  try {
+    const posts = collection(db, "posts");
+    const [olderSnap, newerSnap] = await Promise.all([
+      getDocs(query(posts, where("published", "==", true),
+        where("createdAt", "<", post.createdAt), orderBy("createdAt", "desc"), limit(1))),
+      getDocs(query(posts, where("published", "==", true),
+        where("createdAt", ">", post.createdAt), orderBy("createdAt", "desc"), limitToLast(1))),
+    ]);
+    const item = (snap, cls, label) => {
+      if (snap.empty) return `<span class="pn ${cls} empty-slot"></span>`;
+      const d = snap.docs[0];
+      return `<a class="pn ${cls}" href="./post.html?id=${encodeURIComponent(d.id)}">
+        <span class="pn-label">${label}</span>
+        <span class="pn-title">${escapeHtml(d.data().title || "")}</span></a>`;
+    };
+    nav.innerHTML =
+      item(olderSnap, "prev", "← 이전 글") + item(newerSnap, "next", "다음 글 →");
+  } catch (e) {
+    console.warn("post nav:", e);
+    nav.innerHTML = "";
+  }
+}
+
+// 읽기 진행률 바
+const progressEl = document.getElementById("readProgress");
+window.addEventListener("scroll", () => {
+  const h = document.documentElement;
+  const max = h.scrollHeight - h.clientHeight;
+  progressEl.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+}, { passive: true });
 
 function buildToc(body) {
   const headings = body.querySelectorAll("h2, h3");
