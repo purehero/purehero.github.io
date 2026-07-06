@@ -10,7 +10,7 @@ service firebase.storage {
 
     function adminEmails() {
       return [
-        "junho.hong@doverunner.com"
+        "purehero@gmail.com"
       ];
     }
     function isAdmin() {

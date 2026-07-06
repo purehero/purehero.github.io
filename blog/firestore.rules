@@ -11,7 +11,7 @@ service cloud.firestore {
     // 관리자 이메일 목록 (여기와 firebase-config.js 를 동일하게 유지)
     function adminEmails() {
       return [
-        "junho.hong@doverunner.com"
+        "purehero@gmail.com"
       ];
     }
     function isAdmin() {
