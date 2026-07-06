@@ -5,36 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>purehero · Tech Guide</title>
 <meta name="description" content="하우투 · 팁 · 기술 노트 — Firebase 기반 기술 가이드 블로그">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800;900&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
-<link rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css"
-  media="(prefers-color-scheme: light)">
-<link rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css"
-  media="(prefers-color-scheme: dark)">
+<link id="hljs-light" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link id="hljs-dark" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" disabled>
+<script>
+  (function () { try { document.documentElement.dataset.theme = localStorage.getItem("blog-theme") || "mono"; } catch (e) {} })();
+</script>
 </head>
 <body>
 
-<main class="layout">
+<div class="cat-bar"><div class="inner" id="catBar"></div></div>
+
+<main class="layout" id="layout">
   <section>
     <div class="search">
       <span class="icon">🔍</span>
       <input id="searchInput" type="text" placeholder="제목·내용·태그 검색…" autocomplete="off">
     </div>
     <div id="activeFilter"></div>
+    <div id="hero"></div>
+    <div class="section-head"><h2 id="listHeading">최신 글</h2></div>
     <div id="postList" class="post-list">
       <div class="notice"><span class="spinner"></span> 글을 불러오는 중…</div>
     </div>
   </section>
 
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-box about-box" id="aboutBox"></div>
     <div class="side-box">
-      <h3>태그</h3>
-      <div id="tagCloud" class="tag-cloud"><span class="empty" style="padding:0">—</span></div>
+      <h3>인기 글</h3>
+      <div id="recentList"><span class="empty" style="padding:0">—</span></div>
     </div>
     <div class="side-box">
-      <h3>최근 글</h3>
-      <div id="recentList"><span class="empty" style="padding:0">—</span></div>
+      <h3>카테고리</h3>
+      <div id="tagCloud" class="tag-cloud"><span class="empty" style="padding:0">—</span></div>
     </div>
   </aside>
 </main>
@@ -42,43 +49,41 @@
 <script type="module">
 import {
   db, collection, getDocs, query, where, orderBy,
-  mountHeader, mountFooter, fmtDate, escapeHtml, getParam,
+  mountHeader, mountFooter, fmtDate, escapeHtml, getParam, SITE, currentLayout,
 } from "./common.js";
+import { buildHero, renderCards } from "./templates.js";
 
 mountHeader("home");
 mountFooter();
 
+const layoutEl = document.getElementById("layout");
+const sidebarEl = document.getElementById("sidebar");
 const listEl = document.getElementById("postList");
+const heroEl = document.getElementById("hero");
+const headingEl = document.getElementById("listHeading");
 const tagCloudEl = document.getElementById("tagCloud");
 const recentEl = document.getElementById("recentList");
+const catBarEl = document.getElementById("catBar");
+const aboutEl = document.getElementById("aboutBox");
 const searchEl = document.getElementById("searchInput");
 const activeFilterEl = document.getElementById("activeFilter");
 
 let allPosts = [];
+let loaded = false;
 let activeTag = getParam("tag") || "";
 let searchTerm = "";
 
-function cardHtml(p) {
-  const cover = p.coverImage
-    ? `<img class="cover" src="${escapeHtml(p.coverImage)}" alt="" loading="lazy">`
-    : "";
-  const tags = (p.tags || []).map((t) =>
-    `<span class="tag">${escapeHtml(t)}</span>`).join("");
-  return `
-    <a class="post-card" href="./post.html?id=${encodeURIComponent(p.id)}">
-      ${cover}
-      <div class="body">
-        <h2>${escapeHtml(p.title)}</h2>
-        <p class="excerpt">${escapeHtml(p.excerpt || "")}</p>
-        <div class="meta">
-          <span class="date">${fmtDate(p.createdAt)}</span>
-          ${tags}
-        </div>
-      </div>
-    </a>`;
-}
-
 function render() {
+  if (!loaded) return;
+  const layout = currentLayout();
+
+  // 템플릿 뼈대 적용
+  layoutEl.dataset.sidebar = layout.sidebar;
+  layoutEl.dataset.container = layout.container;
+  listEl.dataset.grid = layout.grid;
+  sidebarEl.style.display = layout.sidebar === "none" ? "none" : "";
+
+  const filtering = !!activeTag || !!searchTerm;
   let posts = allPosts;
   if (activeTag) posts = posts.filter((p) => (p.tags || []).includes(activeTag));
   if (searchTerm) {
@@ -91,15 +96,31 @@ function render() {
   }
 
   activeFilterEl.innerHTML = activeTag
-    ? `<p style="color:var(--muted)">태그 <span class="tag active">${escapeHtml(activeTag)}</span>
+    ? `<p style="color:var(--muted);margin:0 0 4px">태그 <span class="tag active">${escapeHtml(activeTag)}</span>
        <a href="#" id="clearTag" style="margin-left:8px">✕ 해제</a></p>`
     : "";
   const clear = document.getElementById("clearTag");
   if (clear) clear.onclick = (e) => { e.preventDefault(); setTag(""); };
 
-  listEl.innerHTML = posts.length
-    ? posts.map(cardHtml).join("")
-    : `<div class="empty">표시할 글이 없습니다.</div>`;
+  // 히어로(필터/검색 없을 때만) → 남은 글 목록
+  let rest = posts;
+  if (!filtering && posts.length) {
+    const { html, used } = buildHero(layout.hero, posts);
+    heroEl.innerHTML = html;
+    rest = posts.slice(used);
+    headingEl.textContent = "최신 글";
+  } else {
+    heroEl.innerHTML = "";
+    headingEl.textContent = activeTag ? `# ${activeTag}`
+      : searchTerm ? `"${searchTerm}" 검색 결과` : "최신 글";
+  }
+
+  listEl.innerHTML = rest.length
+    ? renderCards(layout.grid, rest)
+    : (filtering ? `<div class="empty">일치하는 글이 없습니다.</div>`
+                 : (heroEl.innerHTML ? "" : `<div class="empty">아직 발행된 글이 없습니다.</div>`));
+
+  syncCatBar();
 }
 
 function setTag(tag) {
@@ -108,9 +129,29 @@ function setTag(tag) {
   if (tag) url.searchParams.set("tag", tag); else url.searchParams.delete("tag");
   history.replaceState(null, "", url);
   render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function miniHtml(p) {
+  const thumb = p.coverImage
+    ? `<img class="thumb" src="${escapeHtml(p.coverImage)}" alt="" loading="lazy">`
+    : `<div class="thumb">⬡</div>`;
+  return `<a class="mini-post" href="./post.html?id=${encodeURIComponent(p.id)}">
+      ${thumb}
+      <div><div class="mtitle">${escapeHtml(p.title)}</div>
+        <div class="mdate">${fmtDate(p.createdAt)}</div></div>
+    </a>`;
 }
 
 function buildSidebar() {
+  aboutEl.innerHTML = `
+    <div class="pic">⬡</div>
+    <div class="name">${escapeHtml(SITE.title)}</div>
+    <p>${escapeHtml(SITE.tagline)}<br>실전 하우투와 개발 노트를 기록합니다.</p>`;
+
+  recentEl.innerHTML = allPosts.slice(0, 5).map(miniHtml).join("")
+    || `<span class="empty" style="padding:0">—</span>`;
+
   const counts = {};
   allPosts.forEach((p) => (p.tags || []).forEach((t) => { counts[t] = (counts[t] || 0) + 1; }));
   const tags = Object.entries(counts).sort((a, b) => b[1] - a[1]);
@@ -121,13 +162,20 @@ function buildSidebar() {
   tagCloudEl.querySelectorAll("[data-tag]").forEach((el) =>
     el.addEventListener("click", () => setTag(el.dataset.tag)));
 
-  recentEl.innerHTML = allPosts.slice(0, 5).map((p) =>
-    `<a href="./post.html?id=${encodeURIComponent(p.id)}"
-        style="display:block;padding:5px 0;text-decoration:none;font-size:.92rem">
-       ${escapeHtml(p.title)}</a>`).join("") || `<span class="empty" style="padding:0">—</span>`;
+  catBarEl.innerHTML = tags.slice(0, 8).map(([t]) =>
+    `<a data-tag="${escapeHtml(t)}">${escapeHtml(t)}</a>`).join("");
+  catBarEl.querySelectorAll("[data-tag]").forEach((el) =>
+    el.addEventListener("click", () => setTag(el.dataset.tag)));
+}
+
+function syncCatBar() {
+  catBarEl.querySelectorAll("a").forEach((a) =>
+    a.classList.toggle("active", a.dataset.tag === activeTag));
 }
 
 searchEl.addEventListener("input", () => { searchTerm = searchEl.value.trim(); render(); });
+// 테마(템플릿) 변경 시 홈 전체를 다시 그림
+window.addEventListener("themechange", render);
 
 async function load() {
   try {
@@ -138,10 +186,12 @@ async function load() {
     );
     const snap = await getDocs(q);
     allPosts = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    loaded = true;
     buildSidebar();
     render();
   } catch (e) {
     console.error(e);
+    heroEl.innerHTML = "";
     listEl.innerHTML = `<div class="notice error">
       글을 불러오지 못했습니다.<br>Firebase 설정(firebase-config.js)과 색인/규칙을 확인하세요.<br>
       <small>${escapeHtml(e.message)}</small></div>`;

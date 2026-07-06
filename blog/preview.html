@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>템플릿 미리보기 · purehero Tech Guide</title>
+<!-- 로컬 미리보기 전용 페이지. 샘플 데이터로 모든 테마(템플릿)를 확인합니다.
+     실제 배포에는 불필요하니 삭제해도 됩니다. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800;900&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+<link id="hljs-light" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link id="hljs-dark" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" disabled>
+<script>
+  (function () { try { document.documentElement.dataset.theme = localStorage.getItem("blog-theme") || "mono"; } catch (e) {} })();
+</script>
+</head>
+<body>
+
+<div class="cat-bar"><div class="inner" id="catBar"></div></div>
+
+<main class="layout" id="layout">
+  <section>
+    <div class="search"><span class="icon">🔍</span>
+      <input id="searchInput" type="text" placeholder="제목·내용·태그 검색…" autocomplete="off"></div>
+    <div id="activeFilter"></div>
+    <div id="hero"></div>
+    <div class="section-head"><h2 id="listHeading">최신 글</h2></div>
+    <div id="postList" class="post-list"></div>
+  </section>
+  <aside class="sidebar" id="sidebar">
+    <div class="side-box about-box" id="aboutBox"></div>
+    <div class="side-box"><h3>인기 글</h3><div id="recentList"></div></div>
+    <div class="side-box"><h3>카테고리</h3><div id="tagCloud" class="tag-cloud"></div></div>
+  </aside>
+</main>
+
+<script type="module">
+import {
+  mountHeader, mountFooter, fmtDate, escapeHtml, SITE, currentLayout,
+} from "./common.js";
+import { buildHero, renderCards } from "./templates.js";
+
+mountHeader("home");
+mountFooter();
+
+// ---- 색상 SVG 커버(데이터 URI) — 네트워크 불필요 --------------------------
+function cover(c1, c2, label) {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'>
+    <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+      <stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2}'/></linearGradient></defs>
+    <rect width='800' height='500' fill='url(#g)'/>
+    <text x='50%' y='52%' font-family='sans-serif' font-size='120' fill='rgba(255,255,255,.85)'
+      text-anchor='middle' dominant-baseline='middle'>${label}</text></svg>`;
+  return "data:image/svg+xml," + encodeURIComponent(svg);
+}
+
+const SAMPLE = [
+  { id: "1", title: "Firebase Firestore로 정적 블로그 만들기", tags: ["Firebase", "하우투"],
+    excerpt: "서버 없이 GitHub Pages에서 동작하는 블로그를 Firestore와 Storage로 구축하는 전체 과정을 정리했습니다.",
+    coverImage: cover("#3b66d6", "#2c9a8f", "🔥"), createdAt: "2026-07-01" },
+  { id: "2", title: "Markdown 에디터에 이미지 업로드 붙이기", tags: ["웹", "팁"],
+    excerpt: "드래그·붙여넣기로 이미지를 Storage에 올리고 본문에 자동 삽입하는 방법.",
+    coverImage: cover("#b6532f", "#e08a5f", "🖼"), createdAt: "2026-06-28" },
+  { id: "3", title: "highlight.js로 코드 하이라이트 다크 모드 대응", tags: ["웹", "CSS"],
+    excerpt: "테마에 따라 코드 블록 스타일을 자동으로 전환하는 깔끔한 패턴.",
+    coverImage: cover("#1f6f5c", "#a6642b", "{ }"), createdAt: "2026-06-20" },
+  { id: "4", title: "Firestore 보안 규칙 실전 가이드", tags: ["Firebase", "보안"],
+    excerpt: "관리자만 쓰기, 누구나 읽기 — 이메일 기반 권한을 규칙으로 구현하기.",
+    coverImage: cover("#e23b3b", "#1f6feb", "🔒"), createdAt: "2026-06-15" },
+  { id: "5", title: "정적 사이트에 검색 기능 붙이는 3가지 방법", tags: ["웹", "팁"],
+    excerpt: "클라이언트 사이드 필터부터 색인 서비스까지, 규모별 선택지 비교.",
+    coverImage: cover("#6b46c1", "#3b66d6", "🔍"), createdAt: "2026-06-10" },
+  { id: "6", title: "CSS 변수로 멀티 테마 시스템 설계하기", tags: ["CSS", "디자인"],
+    excerpt: "data-theme 속성 하나로 팔레트와 레이아웃을 통째로 바꾸는 구조.",
+    coverImage: cover("#0ea5a5", "#3b66d6", "🎨"), createdAt: "2026-06-02" },
+  { id: "7", title: "Google 로그인으로 관리자 인증 구현", tags: ["Firebase", "하우투"],
+    excerpt: "Firebase Auth 팝업 로그인과 이메일 화이트리스트로 글쓰기 권한 제한.",
+    coverImage: cover("#d97706", "#b6532f", "👤"), createdAt: "2026-05-25" },
+];
+
+const layoutEl = document.getElementById("layout");
+const sidebarEl = document.getElementById("sidebar");
+const listEl = document.getElementById("postList");
+const heroEl = document.getElementById("hero");
+const catBarEl = document.getElementById("catBar");
+const aboutEl = document.getElementById("aboutBox");
+const recentEl = document.getElementById("recentList");
+const tagCloudEl = document.getElementById("tagCloud");
+
+function miniHtml(p) {
+  return `<a class="mini-post" href="#"><img class="thumb" src="${p.coverImage}" alt="">
+    <div><div class="mtitle">${escapeHtml(p.title)}</div>
+      <div class="mdate">${fmtDate(p.createdAt)}</div></div></a>`;
+}
+function buildSidebar() {
+  aboutEl.innerHTML = `<div class="pic">⬡</div><div class="name">${escapeHtml(SITE.title)}</div>
+    <p>${escapeHtml(SITE.tagline)}<br>실전 하우투와 개발 노트를 기록합니다.</p>`;
+  recentEl.innerHTML = SAMPLE.slice(0, 5).map(miniHtml).join("");
+  const counts = {};
+  SAMPLE.forEach((p) => p.tags.forEach((t) => { counts[t] = (counts[t] || 0) + 1; }));
+  const tags = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  tagCloudEl.innerHTML = tags.map(([t, c]) => `<span class="tag">${escapeHtml(t)}<span class="count">${c}</span></span>`).join("");
+  catBarEl.innerHTML = tags.map(([t]) => `<a href="#">${escapeHtml(t)}</a>`).join("");
+}
+
+function render() {
+  const layout = currentLayout();
+  layoutEl.dataset.sidebar = layout.sidebar;
+  layoutEl.dataset.container = layout.container;
+  listEl.dataset.grid = layout.grid;
+  sidebarEl.style.display = layout.sidebar === "none" ? "none" : "";
+
+  const { html, used } = buildHero(layout.hero, SAMPLE);
+  heroEl.innerHTML = html;
+  listEl.innerHTML = renderCards(layout.grid, SAMPLE.slice(used));
+}
+
+buildSidebar();
+render();
+window.addEventListener("themechange", render);
+</script>
+</body>
+</html>

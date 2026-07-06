@@ -37,6 +37,58 @@ export {
 export { SITE, ADMIN_EMAILS };
 
 // ---- 인증 -------------------------------------------------------------------
+// ---- 테마 (= 전체 템플릿) ---------------------------------------------------
+// layout 필드가 홈 페이지의 구조 전체(헤더 배치·히어로·목록·사이드바·폭)를 결정.
+//   header:    inline | center
+//   hero:      none | scrim | split | feature
+//   grid:      list | 2col | 3col | stack
+//   sidebar:   right | none
+//   container: blog | wide | narrow
+export const THEMES = [
+  { id: "mono",     name: "클린 리스트",  dark: false,
+    layout: { header: "inline", hero: "split",   grid: "list",  sidebar: "right", container: "blog" } },
+  { id: "paper",    name: "따뜻한 매거진", dark: false,
+    layout: { header: "center", hero: "scrim",   grid: "2col",  sidebar: "right", container: "wide" } },
+  { id: "classic",  name: "블루 그리드",   dark: false,
+    layout: { header: "inline", hero: "scrim",   grid: "2col",  sidebar: "right", container: "wide" } },
+  { id: "magazine", name: "뉴스 매거진",   dark: false,
+    layout: { header: "center", hero: "feature", grid: "3col",  sidebar: "none",  container: "wide" } },
+  { id: "editorial", name: "에디토리얼",   dark: false,
+    layout: { header: "center", hero: "none",    grid: "stack", sidebar: "none",  container: "narrow" } },
+  { id: "midnight", name: "미드나잇 (다크)", dark: true,
+    layout: { header: "inline", hero: "scrim",   grid: "2col",  sidebar: "right", container: "wide" } },
+  { id: "carbon",   name: "카본 (다크)",   dark: true,
+    layout: { header: "inline", hero: "feature", grid: "3col",  sidebar: "none",  container: "wide" } },
+];
+export const DEFAULT_THEME = "mono";
+const THEME_KEY = "blog-theme";
+
+export function themeDef(id) {
+  return THEMES.find((t) => t.id === id) || THEMES.find((t) => t.id === DEFAULT_THEME);
+}
+export function currentTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  return THEMES.some((t) => t.id === saved) ? saved : DEFAULT_THEME;
+}
+export function currentLayout() {
+  return themeDef(currentTheme()).layout;
+}
+
+// data-theme(팔레트/폰트) + data-header(헤더 배치) 적용, 저장, 코드 하이라이트
+// 라이트/다크 전환, 그리고 다른 스크립트가 다시 그릴 수 있도록 themechange 발행.
+export function applyTheme(id) {
+  const def = themeDef(id);
+  const root = document.documentElement;
+  root.dataset.theme = def.id;
+  root.dataset.header = def.layout.header;
+  localStorage.setItem(THEME_KEY, def.id);
+  const light = document.getElementById("hljs-light");
+  const darkCss = document.getElementById("hljs-dark");
+  if (light) light.disabled = def.dark;
+  if (darkCss) darkCss.disabled = !def.dark;
+  window.dispatchEvent(new CustomEvent("themechange", { detail: { theme: def.id } }));
+}
+
 export function isAdmin(user) {
   return !!user && ADMIN_EMAILS.includes((user.email || "").toLowerCase());
 }
@@ -133,10 +185,19 @@ export function mountHeader(active = "") {
       </a>
       <nav id="siteNav">
         <a href="./index.html" class="${active === "home" ? "cta" : ""}">홈</a>
+        <select class="theme-select" id="themeSelect" title="테마 선택" aria-label="테마 선택">
+          ${THEMES.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("")}
+        </select>
         <span id="authSlot"></span>
       </nav>
     </div>`;
   document.body.prepend(header);
+
+  // 테마 선택기
+  applyTheme(currentTheme());
+  const sel = header.querySelector("#themeSelect");
+  sel.value = currentTheme();
+  sel.addEventListener("change", () => applyTheme(sel.value));
 
   const slot = header.querySelector("#authSlot");
   onUser((user) => {
