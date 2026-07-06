@@ -1,0 +1,48 @@
+rules_version = '2';
+
+// =============================================================================
+// Firestore 보안 규칙 — Firebase 콘솔 > Firestore > 규칙 탭에 붙여넣으세요.
+// ADMIN_EMAILS 는 firebase-config.js 의 값과 반드시 일치시켜야 합니다.
+// =============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 관리자 이메일 목록 (여기와 firebase-config.js 를 동일하게 유지)
+    function adminEmails() {
+      return [
+        "junho.hong@doverunner.com"
+      ];
+    }
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in adminEmails();
+    }
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    match /posts/{postId} {
+      // 공개된 글은 누구나 읽기. 비공개 글은 관리자만.
+      allow read: if resource.data.published == true || isAdmin();
+      // 작성/수정/삭제는 관리자만.
+      allow create, update, delete: if isAdmin();
+
+      match /comments/{commentId} {
+        // 댓글은 누구나 읽기.
+        allow read: if true;
+        // 로그인(이메일 인증)한 사용자만 댓글 작성. 본인 uid 로만.
+        allow create: if isSignedIn()
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.body is string
+          && request.resource.data.body.size() > 0
+          && request.resource.data.body.size() < 5000;
+        // 댓글 삭제는 작성자 본인 또는 관리자.
+        allow delete: if isAdmin()
+          || (isSignedIn() && resource.data.uid == request.auth.uid);
+        allow update: if false;
+      }
+    }
+  }
+}
