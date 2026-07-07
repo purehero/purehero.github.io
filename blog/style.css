@@ -334,6 +334,20 @@ img { max-width: 100%; }
 .article img { border-radius: 12px; border: 1px solid var(--border); display: block; margin: 1.4em auto; box-shadow: var(--shadow-sm); }
 .article .video-embed { position: relative; width: 100%; aspect-ratio: 16 / 9; margin: 1.6em 0; }
 .article .video-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 12px; box-shadow: var(--shadow-sm); }
+.article .livescores { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin: 1.6em 0; background: var(--bg3); box-shadow: var(--shadow-sm); }
+.article .livescores .ls-head { display: flex; align-items: center; gap: 8px; padding: 11px 15px; font-weight: 600; font-size: .95rem; border-bottom: 1px solid var(--border); }
+.article .livescores .ls-live { color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .04em; }
+.article .livescores .ls-src { margin-left: auto; color: var(--muted); font-weight: 400; font-size: .8rem; }
+.article .livescores .ls-list { list-style: none; margin: 0; padding: 4px 0; }
+.article .livescores .ls-row { display: grid; grid-template-columns: 1fr auto 1fr auto; align-items: center; gap: 10px; padding: 9px 15px; font-size: .95rem; margin: 0; }
+.article .livescores .ls-row + .ls-row { border-top: 1px solid var(--border); }
+.article .livescores .ls-team { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.article .livescores .ls-team.home { text-align: right; }
+.article .livescores .ls-score { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.article .livescores .ls-score i { color: var(--muted); font-style: normal; margin: 0 4px; }
+.article .livescores .ls-status { color: var(--muted); font-size: .76rem; white-space: nowrap; justify-self: end; }
+.article .livescores .ls-loading { padding: 16px; color: var(--muted); text-align: center; }
+.article .livescores .ls-foot { padding: 8px 15px; border-top: 1px solid var(--border); color: var(--muted); font-size: .76rem; }
 .article a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .article ul, .article ol { padding-left: 1.4em; }
 .article li { margin: .4em 0; }
