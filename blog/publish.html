@@ -208,16 +208,20 @@ async function register({ auto = false } = {}) {
     }
 
     // 표지가 data URI 면 Storage 에 업로드하고 링크로 교체 (이미지는 Storage 원칙)
+    // Storage 쓰기 실패(규칙 미배포 등) 시 인라인 data URI 로 폴백해 글 유실을 막는다.
     let coverImage = coverEl.value.trim();
+    let storageWarn = false;
     if (coverImage.startsWith("data:")) {
       $("saveStatus").innerHTML = `<span class="spinner"></span> 표지 이미지를 Storage 에 업로드 중…`;
-      coverImage = await uploadDataUri(coverImage, "cover");
+      try { coverImage = await uploadDataUri(coverImage, "cover"); }
+      catch (e) { console.warn("표지 Storage 업로드 실패 → 인라인 저장:", e); storageWarn = true; }
     }
 
     // 본문 안의 data URI 이미지도 Storage 로 업로드하고 링크로 치환
     if (content.includes("data:image/")) {
       $("saveStatus").innerHTML = `<span class="spinner"></span> 본문 이미지를 Storage 에 업로드 중…`;
-      content = await uploadInlineImages(content);
+      try { content = await uploadInlineImages(content); }
+      catch (e) { console.warn("본문 이미지 Storage 업로드 실패 → 인라인 저장:", e); storageWarn = true; }
     }
 
     const tags = $("tags").value.split(",").map((t) => t.trim()).filter(Boolean);
@@ -230,6 +234,7 @@ async function register({ auto = false } = {}) {
       createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
     });
     $("saveStatus").textContent = "등록 완료 — 글 페이지로 이동합니다…";
+    if (storageWarn) alert("등록은 됐지만 이미지를 Storage 에 올리지 못해 인라인(data URI)으로 저장했습니다.\n\nFirebase 콘솔 → Storage → 규칙에 blog/storage.rules 를 배포했는지 확인하세요 (blog/images 관리자 쓰기 허용).");
     location.href = `./post.html?id=${encodeURIComponent(refDoc.id)}`;
   } catch (e) {
     registering = false; btn.disabled = false;
