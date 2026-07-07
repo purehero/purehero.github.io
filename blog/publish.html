@@ -65,7 +65,7 @@
 
 <script type="module">
 import {
-  db, auth, storage, addDoc, getDocs, collection, query, where, limit,
+  db, auth, storage, addDoc, updateDoc, getDocs, collection, query, where, limit,
   serverTimestamp, storageRef, uploadBytes, getDownloadURL,
   renderMarkdown, highlightWithin, excerptFrom, escapeHtml,
   mountHeader, mountFooter, onUser, isAdmin, login,
@@ -168,7 +168,7 @@ async function uploadDataUri(dataUri, prefix = "img") {
 
 // 본문 Markdown/HTML 안의 data: 이미지를 모두 Storage 로 올리고 링크로 치환
 async function uploadInlineImages(md) {
-  const uris = [...new Set(md.match(/data:image\/[^)"'\s]+/g) || [])];
+  const uris = [...new Set(md.match(/data:image\/[^)\s]+/g) || [])];
   for (const uri of uris) {
     const url = await uploadDataUri(uri, "img");
     md = md.split(uri).join(url);   // 같은 이미지가 여러 번 나와도 모두 치환
@@ -192,16 +192,13 @@ async function register({ auto = false } = {}) {
   btn.disabled = true;
   $("saveStatus").innerHTML = `<span class="spinner"></span> 등록 중…`;
   try {
-    // 제목 중복 방지 — 같은 제목이 이미 있으면
+    // 같은 제목이 이미 있으면: 기존 글을 이 내용으로 갱신(재발행)한다.
+    // (자동 모드는 바로 갱신, 수동 모드는 확인) — 중복 생성 대신 덮어쓰기.
+    let existRef = null, existId = null;
     const dup = await getDocs(query(collection(db, "posts"), where("title", "==", title), limit(1)));
     if (!dup.empty) {
-      const existId = dup.docs[0].id;
-      if (auto) {
-        $("saveStatus").innerHTML = `이미 같은 제목의 글이 있어 등록을 건너뜁니다. <a href="./post.html?id=${encodeURIComponent(existId)}">기존 글 보기</a>`;
-        registering = false; btn.disabled = false;
-        return;
-      }
-      if (!confirm("같은 제목의 글이 이미 있습니다. 그래도 새로 등록할까요?")) {
+      existRef = dup.docs[0].ref; existId = dup.docs[0].id;
+      if (!auto && !confirm("같은 제목의 글이 이미 있습니다.\n[확인] 기존 글을 이 내용으로 갱신 / [취소] 중단")) {
         registering = false; btn.disabled = false; $("saveStatus").textContent = "";
         return;
       }
@@ -225,17 +222,26 @@ async function register({ auto = false } = {}) {
     }
 
     const tags = $("tags").value.split(",").map((t) => t.trim()).filter(Boolean);
-    $("saveStatus").innerHTML = `<span class="spinner"></span> 등록 중…`;
-    const refDoc = await addDoc(collection(db, "posts"), {
+    const data = {
       title, content, excerpt: excerptFrom(content), tags,
       coverImage,
       published: $("published").checked,
       authorEmail: user.email, authorUid: user.uid,
-      createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
-    });
-    $("saveStatus").textContent = "등록 완료 — 글 페이지로 이동합니다…";
-    if (storageWarn) alert("등록은 됐지만 이미지를 Storage 에 올리지 못해 인라인(data URI)으로 저장했습니다.\n\nFirebase 콘솔 → Storage → 규칙에 blog/storage.rules 를 배포했는지 확인하세요 (blog/images 관리자 쓰기 허용).");
-    location.href = `./post.html?id=${encodeURIComponent(refDoc.id)}`;
+      updatedAt: serverTimestamp(),
+    };
+    let id;
+    if (existRef) {
+      $("saveStatus").innerHTML = `<span class="spinner"></span> 기존 글 갱신 중…`;
+      await updateDoc(existRef, data);
+      id = existId;
+    } else {
+      $("saveStatus").innerHTML = `<span class="spinner"></span> 등록 중…`;
+      data.createdAt = serverTimestamp();
+      id = (await addDoc(collection(db, "posts"), data)).id;
+    }
+    $("saveStatus").textContent = "완료 — 글 페이지로 이동합니다…";
+    if (storageWarn) alert("저장은 됐지만 이미지를 Storage 에 올리지 못해 인라인(data URI)으로 저장했습니다.\n\nFirebase 콘솔 → Storage → 규칙에 blog-images 관리자 쓰기가 허용됐는지 확인하세요.");
+    location.href = `./post.html?id=${encodeURIComponent(id)}`;
   } catch (e) {
     registering = false; btn.disabled = false;
     $("saveStatus").textContent = "";
