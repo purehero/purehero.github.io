@@ -2,30 +2,24 @@ rules_version = '2';
 
 // =============================================================================
 // Firebase Storage 보안 규칙 — 콘솔 > Storage > 규칙 탭에 붙여넣으세요.
-// 이미지는 blog/images/ 아래에 저장됩니다.
+// 실제 배포본과 일치하는 버전입니다.
+// 이미지는 blog-images/ 아래에 저장됩니다. (write.html / publish.html 동일)
+// 쓰기 권한은 관리자 UID 로 제한합니다.
+//   * 주의: 관리자 계정(UID)이 바뀌면 아래 uid 값을 갱신해야 합니다.
 // =============================================================================
 
 service firebase.storage {
   match /b/{bucket}/o {
 
-    function adminEmails() {
-      return [
-        "purehero@gmail.com"
-      ];
-    }
-    function isAdmin() {
-      return request.auth != null
-        && request.auth.token.email_verified == true
-        && request.auth.token.email in adminEmails();
-    }
+    // 블로그 이미지 폴더
+    match /blog-images/{allPaths=**} {
 
-    match /blog/images/{fileName} {
-      // 블로그 이미지는 누구나 조회 가능(공개 블로그).
+      // [읽기] 블로그 방문자 누구나 이미지를 볼 수 있음 (공개 블로그)
       allow read: if true;
-      // 업로드는 관리자만. 이미지 타입, 10MB 이하로 제한.
-      allow write: if isAdmin()
-        && request.resource.size < 10 * 1024 * 1024
-        && request.resource.contentType.matches('image/.*');
+
+      // [쓰기/삭제] 관리자 UID 로 로그인한 경우에만 허용
+      allow write: if request.auth != null
+        && request.auth.uid == 'gyuS4cr6ocRax9Jezsx7Q5sDpt83';
     }
   }
 }

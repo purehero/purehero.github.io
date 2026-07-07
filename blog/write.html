@@ -127,7 +127,7 @@ function safeName(name) {
 async function uploadImage(file) {
   // Date.now() 대신 performance 기반 + 랜덤 회피: 파일 크기·이름 조합으로 고유화
   const stamp = `${file.size}_${safeName(file.name)}`;
-  const path = `blog/images/${Math.floor(performance.timeOrigin + performance.now())}_${stamp}`;
+  const path = `blog-images/${Math.floor(performance.timeOrigin + performance.now())}_${stamp}`;
   const r = storageRef(storage, path);
   await uploadBytes(r, file, { contentType: file.type });
   return await getDownloadURL(r);

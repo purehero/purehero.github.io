@@ -161,7 +161,7 @@ async function uploadDataUri(dataUri, prefix = "img") {
   const type = blob.type || "image/svg+xml";
   const ext = type.includes("svg") ? "svg" : (type.split("/")[1] || "img").split("+")[0];
   const uniq = `${Math.floor(performance.timeOrigin + performance.now())}_${uploadSeq++}`;
-  const r = storageRef(storage, `blog/images/${prefix}_${uniq}.${ext}`);
+  const r = storageRef(storage, `blog-images/${prefix}_${uniq}.${ext}`);
   await uploadBytes(r, blob, { contentType: type });
   return await getDownloadURL(r);
 }

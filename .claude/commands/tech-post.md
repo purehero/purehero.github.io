@@ -31,7 +31,7 @@ argument-hint: [주제] — 비우면 최신 트렌딩 주제를 자동 선택 (
 - 분량: 본문 1,000~2,500자
 - 태그: 3~5개. 기존 태그 우선 재사용 (Firebase, 웹, 하우투, 팁, CSS, 보안, 디자인, AI …)
 - **표지 이미지는 항상 생성해 넣는다** (`coverImage`를 절대 빈 문자열로 두지 않는다). 우선순위:
-  1. 주제를 잘 드러내는 **SVG 표지를 직접 생성**한 뒤, **블로그 설계 원칙(텍스트=Firestore, 이미지=Storage)에 맞춰 Storage(`blog/images/`)에 업로드하고 다운로드 URL을 `coverImage`에 저장**한다. 데이터 URI를 Firestore 문서에 인라인으로 박지 않는다(문서 비대화 방지).
+  1. 주제를 잘 드러내는 **SVG 표지를 직접 생성**한 뒤, **블로그 설계 원칙(텍스트=Firestore, 이미지=Storage)에 맞춰 Storage(`blog-images/`)에 업로드하고 다운로드 URL을 `coverImage`에 저장**한다. 데이터 URI를 Firestore 문서에 인라인으로 박지 않는다(문서 비대화 방지).
   2. 적절한 관련 이미지(공식 로고·다이어그램 등 라이선스가 명확한 것)가 있으면 그 URL을 써도 된다.
   - 참고: `write.html`은 파일 업로드→Storage 링크 방식이라 이미 이 원칙을 따른다. 자동 등록 콘솔 스니펫(4-B)도 **생성한 SVG를 Storage에 올린 뒤 링크로 저장**한다(아래 템플릿 참고).
   - **본문 중간 이미지**도 같은 원칙: Markdown `![](URL)`에 Storage/외부 URL을 쓴다. data URI를 본문에 인라인으로 넣지 말 것(문서 비대·1 MiB 한도 위험). `publish.html`은 본문에 들어온 `data:` 이미지를 저장 시 자동으로 Storage에 올려 링크로 치환한다.
@@ -76,10 +76,10 @@ argument-hint: [주제] — 비우면 최신 트렌딩 주제를 자동 선택 (
     <text x='60' y='260' font-family='sans-serif' font-size='96' font-weight='800' fill='#fff'>핵심키워드</text>
     <text x='60' y='320' font-family='sans-serif' font-size='32' fill='rgba(255,255,255,.82)'>부제</text>
   </svg>`;
-  // 설계 원칙(이미지는 Storage): SVG 를 Storage(blog/images/)에 올리고 링크를 coverImage 로 사용
+  // 설계 원칙(이미지는 Storage): SVG 를 Storage(blog-images/)에 올리고 링크를 coverImage 로 사용
   const coverDataUri = "data:image/svg+xml," + encodeURIComponent(coverSvg);
   const _blob = await (await fetch(coverDataUri)).blob();
-  const _ref = m.storageRef(m.storage, `blog/images/cover_${Math.floor(performance.timeOrigin + performance.now())}.svg`);
+  const _ref = m.storageRef(m.storage, `blog-images/cover_${Math.floor(performance.timeOrigin + performance.now())}.svg`);
   await m.uploadBytes(_ref, _blob, { contentType: "image/svg+xml" });
   const coverImage = await m.getDownloadURL(_ref);
 
