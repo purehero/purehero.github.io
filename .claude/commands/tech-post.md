@@ -37,13 +37,14 @@ argument-hint: [주제] — 비우면 최신 트렌딩 주제를 자동 선택 (
   - 참고: `write.html`은 파일 업로드→Storage 링크 방식이라 이미 이 원칙을 따른다. 자동 등록 콘솔 스니펫(4-B)도 **생성한 SVG를 Storage에 올린 뒤 링크로 저장**한다(아래 템플릿 참고).
   - **본문 중간 이미지**도 같은 원칙: Markdown `![](URL)`에 Storage/외부 URL을 쓴다. data URI를 본문에 인라인으로 넣지 말 것(문서 비대·1 MiB 한도 위험). `publish.html`은 본문에 들어온 `data:` 이미지를 저장 시 자동으로 Storage에 올려 링크로 치환한다.
 
-  **SVG 표지 생성 레시피 (self-contained — preview.html 참조 불필요):**
-  - 캔버스: `width='800' height='500' viewBox='0 0 800 500'` (블로그 카드/히어로 비율)
-  - 배경: 주제 색과 어울리는 **대각선 `linearGradient`** (`x1=0 y1=0 x2=1 y2=1`). 예) 프론트엔드=보라~파랑, 보안=빨강~남색, Android=초록~파랑
-  - 심볼: 주제를 상징하는 **도형/일러스트**를 반투명(`rgba(255,255,255,.12~.2)`)으로 배치 (예: 그리드=사각형 블록들, 코드=중괄호, 클라우드=원). 로고 문자·이모지(`{ }`, `🔥`)도 가능
-  - 타이포: 좌하단에 **핵심 키워드**(`font-size≈84~120`, `font-weight='800'`, `fill='#fff'`) + 그 아래 **부제**(`font-size≈30`, `fill='rgba(255,255,255,.85)'`). `font-family='sans-serif'`
-  - 생성한 SVG는 `encodeURIComponent`로 감싼 data URI로 만든 뒤 **Storage에 업로드**하고, 받은 다운로드 URL을 `coverImage`에 저장한다 (아래 4-B 스니펫의 표지 업로드 블록 참고)
-  - SVG는 작은따옴표(`'`)로 속성을 쓰고 백틱은 넣지 않는다 (콘솔 스니펫의 템플릿 리터럴 안에 들어가므로)
+  **표지 SVG는 `blog/tools/covers.py`의 15개 스타일 중 하나로 생성한다** (직접 그라디언트+초대형 볼드로 그리지 말 것 — 그건 "AI스러운" 템플릿이다):
+  - 스타일 15종: `editorial · blueprint · duotone · footer · ghostmark · diagonal · dots · concentric · ticket · contour · terminal · iso · framed · sidebar · orbit`
+  - **스타일 선택**: 최근 글들과 겹치지 않게 고른다(직전 몇 편이 쓴 스타일 회피 / 미사용 우선). 주제와 어울리면 금상첨화(예: JS·도구=terminal, 보안=sidebar/framed, 메모리·블록=iso, 데이터=dots).
+  - 생성: 파이썬에서 `import covers; uri = covers.make("<style>", {"kicker": "카테고리 · KEY", "title": "핵심키워드", "subtitle": "부제", "meta": "버전/날짜 라벨", "accent": "#악센트", "slug": "ascii-slug"})` → `uri`는 `data:image/svg+xml,...` 형태. (make_link 스크립트에서 `covers.py`를 곁에 두고 import)
+    - `accent`는 주제색 1개(예: 게임엔진 `#6ea3c4`, 보안 `#c56b7f`, 웹 `#8f86d6`, 반도체 `#d98a5b`). 나머지 색은 covers.py가 알아서 어둡게 파생한다.
+    - `title`은 짧은 핵심 키워드(예: "Godot 4.7", "앱 보안 솔루션"), `kicker`는 대문자 카테고리 라벨.
+  - 이렇게 만든 data URI를 **Storage(`blog-images/`)에 업로드**하고 다운로드 URL을 `coverImage`에 저장한다(콘솔 스니펫 4-B 및 `publish.html`이 data URI를 자동으로 Storage에 올려준다). 데이터 URI를 Firestore 문서에 인라인으로 박지 않는다.
+  - 원칙: 모든 커버는 "키커 → 제목 → 부제 → 메타" 위계 + 절제된 팔레트 + 스타일별 모티프. 거대한 볼드·네온 그라디언트는 쓰지 않는다.
 
 - **본문을 풍부하게 구성한다 — 이미지·영상·미리보기를 적극 활용**한다. 글이 텍스트만 길게 이어지지 않도록, 섹션마다 이해를 돕는 시각 자료를 곁들인다.
   - **본문 이미지**: 설명을 돕는 스크린샷·다이어그램·로고·비교 이미지를 중간중간 배치한다. `![의미있는 alt](URL)` 형식으로, **Storage 또는 라이선스가 명확한 외부/공식 URL**을 쓴다(data URI를 본문에 넣어도 `publish.html`이 저장 시 Storage로 올려 링크로 치환하지만, 가능하면 처음부터 URL 권장). 캡션이 필요하면 이미지 아래에 이탤릭 한 줄(`*출처: …*`)을 덧붙인다.
@@ -78,17 +79,10 @@ argument-hint: [주제] — 비우면 최신 트렌딩 주제를 자동 선택 (
   const m = await import("./common.js");
   if (!m.isAdmin(m.auth.currentUser)) throw new Error("관리자 로그인이 필요합니다");
 
-  // 표지: 주제에 맞춰 생성한 SVG. 항상 채운다.
-  const coverSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500' viewBox='0 0 800 500'>
-    <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-      <stop offset='0' stop-color='#색1'/><stop offset='1' stop-color='#색2'/></linearGradient></defs>
-    <rect width='800' height='500' fill='url(#g)'/>
-    <!-- 주제를 상징하는 도형/일러스트를 여기에 -->
-    <text x='60' y='260' font-family='sans-serif' font-size='96' font-weight='800' fill='#fff'>핵심키워드</text>
-    <text x='60' y='320' font-family='sans-serif' font-size='32' fill='rgba(255,255,255,.82)'>부제</text>
-  </svg>`;
-  // 설계 원칙(이미지는 Storage): SVG 를 Storage(blog-images/)에 올리고 링크를 coverImage 로 사용
-  const coverDataUri = "data:image/svg+xml," + encodeURIComponent(coverSvg);
+  // 표지: blog/tools/covers.py 의 15개 스타일 중 하나로 생성한 data URI 를 붙여넣는다.
+  //   (파이썬: import covers; covers.make("<style>", {kicker,title,subtitle,meta,accent,slug}))
+  //   직접 그라디언트+초대형 볼드 SVG 를 손으로 그리지 말 것.
+  const coverDataUri = "data:image/svg+xml,...covers.py 출력...";
   const _blob = await (await fetch(coverDataUri)).blob();
   const _ref = m.storageRef(m.storage, `blog-images/cover_${Math.floor(performance.timeOrigin + performance.now())}.svg`);
   await m.uploadBytes(_ref, _blob, { contentType: "image/svg+xml" });
