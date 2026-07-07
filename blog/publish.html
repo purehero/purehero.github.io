@@ -74,6 +74,7 @@ mountHeader("");
 mountFooter();
 
 let user = null;
+let autoMode = false, autoTriggered = false;
 const $ = (id) => document.getElementById(id);
 const gate = $("gate");
 const editor = $("editor");
@@ -97,6 +98,11 @@ onUser((u) => {
   }
   gate.classList.add("hidden");
   editor.classList.remove("hidden");
+  if (autoMode && !autoTriggered) {
+    autoTriggered = true;
+    $("prefillHint").textContent = "관리자 확인됨 — 1초 후 자동으로 등록합니다…";
+    setTimeout(() => register({ auto: true }), 1000);
+  }
 });
 
 // ---- 미리보기 ---------------------------------------------------------------
@@ -132,6 +138,7 @@ function fill(d) {
   if (d.coverImage) coverEl.value = d.coverImage;
   if (typeof d.content === "string") contentEl.value = d.content;
   if (typeof d.published === "boolean") $("published").checked = d.published;
+  if (d.auto === true) autoMode = true;
   updatePreview(); updateCover();
 }
 (function loadPrefill() {
@@ -146,43 +153,53 @@ function fill(d) {
 })();
 
 // ---- 등록 -------------------------------------------------------------------
-$("saveBtn").onclick = async () => {
+let registering = false;
+async function register({ auto = false } = {}) {
+  if (registering) return;
   const title = $("title").value.trim();
   const content = contentEl.value.trim();
-  if (!title) { alert("제목을 입력하세요."); return; }
-  if (!content) { alert("본문을 입력하세요."); return; }
-
+  if (!title || !content) {
+    if (auto) $("saveStatus").textContent = "자동 등록 취소: 제목/본문이 비어 있습니다.";
+    else alert("제목과 본문을 입력하세요.");
+    return;
+  }
+  registering = true;
   const btn = $("saveBtn");
   btn.disabled = true;
   $("saveStatus").innerHTML = `<span class="spinner"></span> 등록 중…`;
   try {
-    // 제목 중복 방지 — 같은 제목이 이미 있으면 확인
+    // 제목 중복 방지 — 같은 제목이 이미 있으면
     const dup = await getDocs(query(collection(db, "posts"), where("title", "==", title), limit(1)));
-    if (!dup.empty && !confirm("같은 제목의 글이 이미 있습니다. 그래도 새로 등록할까요?")) {
-      btn.disabled = false; $("saveStatus").textContent = "";
-      return;
+    if (!dup.empty) {
+      const existId = dup.docs[0].id;
+      if (auto) {
+        $("saveStatus").innerHTML = `이미 같은 제목의 글이 있어 등록을 건너뜁니다. <a href="./post.html?id=${encodeURIComponent(existId)}">기존 글 보기</a>`;
+        registering = false; btn.disabled = false;
+        return;
+      }
+      if (!confirm("같은 제목의 글이 이미 있습니다. 그래도 새로 등록할까요?")) {
+        registering = false; btn.disabled = false; $("saveStatus").textContent = "";
+        return;
+      }
     }
 
     const tags = $("tags").value.split(",").map((t) => t.trim()).filter(Boolean);
     const refDoc = await addDoc(collection(db, "posts"), {
-      title,
-      content,
-      excerpt: excerptFrom(content),
-      tags,
+      title, content, excerpt: excerptFrom(content), tags,
       coverImage: coverEl.value.trim(),
       published: $("published").checked,
-      authorEmail: user.email,
-      authorUid: user.uid,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      authorEmail: user.email, authorUid: user.uid,
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
     });
+    $("saveStatus").textContent = "등록 완료 — 글 페이지로 이동합니다…";
     location.href = `./post.html?id=${encodeURIComponent(refDoc.id)}`;
   } catch (e) {
+    registering = false; btn.disabled = false;
     $("saveStatus").textContent = "";
-    btn.disabled = false;
     alert("등록 실패: " + e.message);
   }
-};
+}
+$("saveBtn").onclick = () => register();
 </script>
 </body>
 </html>
