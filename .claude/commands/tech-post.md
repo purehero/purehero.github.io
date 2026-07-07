@@ -31,16 +31,16 @@ argument-hint: [주제] — 비우면 최신 트렌딩 주제를 자동 선택 (
 - 분량: 본문 1,000~2,500자
 - 태그: 3~5개. 기존 태그 우선 재사용 (Firebase, 웹, 하우투, 팁, CSS, 보안, 디자인, AI …)
 - **표지 이미지는 항상 생성해 넣는다** (`coverImage`를 절대 빈 문자열로 두지 않는다). 우선순위:
-  1. 주제를 잘 드러내는 **SVG 표지를 직접 생성**해 데이터 URI(`data:image/svg+xml,` + `encodeURIComponent(svg)`)로 넣는다. 네트워크·Storage 업로드가 필요 없어 가장 안정적이며, 다른 PC/환경에서도 동일하게 렌더된다.
+  1. 주제를 잘 드러내는 **SVG 표지를 직접 생성**한 뒤, **블로그 설계 원칙(텍스트=Firestore, 이미지=Storage)에 맞춰 Storage(`blog/images/`)에 업로드하고 다운로드 URL을 `coverImage`에 저장**한다. 데이터 URI를 Firestore 문서에 인라인으로 박지 않는다(문서 비대화 방지).
   2. 적절한 관련 이미지(공식 로고·다이어그램 등 라이선스가 명확한 것)가 있으면 그 URL을 써도 된다.
-  - 주의: `write.html`에는 표지 URL 직접 입력란이 없고 파일 업로드만 지원한다. 따라서 데이터 URI 표지는 **자동 등록 콘솔 스니펫(4-B)** 으로만 넣을 수 있다.
+  - 참고: `write.html`은 파일 업로드→Storage 링크 방식이라 이미 이 원칙을 따른다. 자동 등록 콘솔 스니펫(4-B)도 **생성한 SVG를 Storage에 올린 뒤 링크로 저장**한다(아래 템플릿 참고).
 
   **SVG 표지 생성 레시피 (self-contained — preview.html 참조 불필요):**
   - 캔버스: `width='800' height='500' viewBox='0 0 800 500'` (블로그 카드/히어로 비율)
   - 배경: 주제 색과 어울리는 **대각선 `linearGradient`** (`x1=0 y1=0 x2=1 y2=1`). 예) 프론트엔드=보라~파랑, 보안=빨강~남색, Android=초록~파랑
   - 심볼: 주제를 상징하는 **도형/일러스트**를 반투명(`rgba(255,255,255,.12~.2)`)으로 배치 (예: 그리드=사각형 블록들, 코드=중괄호, 클라우드=원). 로고 문자·이모지(`{ }`, `🔥`)도 가능
   - 타이포: 좌하단에 **핵심 키워드**(`font-size≈84~120`, `font-weight='800'`, `fill='#fff'`) + 그 아래 **부제**(`font-size≈30`, `fill='rgba(255,255,255,.85)'`). `font-family='sans-serif'`
-  - 반드시 `encodeURIComponent(svg)`로 감싸 데이터 URI로 만든다 (4-B 스니펫에서 `const coverImage = "data:image/svg+xml," + encodeURIComponent(coverSvg)`)
+  - 생성한 SVG는 `encodeURIComponent`로 감싼 data URI로 만든 뒤 **Storage에 업로드**하고, 받은 다운로드 URL을 `coverImage`에 저장한다 (아래 4-B 스니펫의 표지 업로드 블록 참고)
   - SVG는 작은따옴표(`'`)로 속성을 쓰고 백틱은 넣지 않는다 (콘솔 스니펫의 템플릿 리터럴 안에 들어가므로)
 
 ## 4. 결과 출력
@@ -66,7 +66,7 @@ argument-hint: [주제] — 비우면 최신 트렌딩 주제를 자동 선택 (
   const m = await import("./common.js");
   if (!m.isAdmin(m.auth.currentUser)) throw new Error("관리자 로그인이 필요합니다");
 
-  // 표지: 주제에 맞춰 생성한 SVG (데이터 URI, Storage 업로드 불필요). 항상 채운다.
+  // 표지: 주제에 맞춰 생성한 SVG. 항상 채운다.
   const coverSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500' viewBox='0 0 800 500'>
     <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
       <stop offset='0' stop-color='#색1'/><stop offset='1' stop-color='#색2'/></linearGradient></defs>
@@ -75,7 +75,12 @@ argument-hint: [주제] — 비우면 최신 트렌딩 주제를 자동 선택 (
     <text x='60' y='260' font-family='sans-serif' font-size='96' font-weight='800' fill='#fff'>핵심키워드</text>
     <text x='60' y='320' font-family='sans-serif' font-size='32' fill='rgba(255,255,255,.82)'>부제</text>
   </svg>`;
-  const coverImage = "data:image/svg+xml," + encodeURIComponent(coverSvg);
+  // 설계 원칙(이미지는 Storage): SVG 를 Storage(blog/images/)에 올리고 링크를 coverImage 로 사용
+  const coverDataUri = "data:image/svg+xml," + encodeURIComponent(coverSvg);
+  const _blob = await (await fetch(coverDataUri)).blob();
+  const _ref = m.storageRef(m.storage, `blog/images/cover_${Math.floor(performance.timeOrigin + performance.now())}.svg`);
+  await m.uploadBytes(_ref, _blob, { contentType: "image/svg+xml" });
+  const coverImage = await m.getDownloadURL(_ref);
 
   // 본문: 백틱 대신 § 사용 → 마지막에 치환 (이스케이프 불필요)
   const content = `...§§§js ... 코드펜스 ... §§§ ... 인라인은 §코드§ ...`

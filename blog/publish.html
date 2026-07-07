@@ -65,8 +65,9 @@
 
 <script type="module">
 import {
-  db, auth, addDoc, getDocs, collection, query, where, limit,
-  serverTimestamp, renderMarkdown, highlightWithin, excerptFrom, escapeHtml,
+  db, auth, storage, addDoc, getDocs, collection, query, where, limit,
+  serverTimestamp, storageRef, uploadBytes, getDownloadURL,
+  renderMarkdown, highlightWithin, excerptFrom, escapeHtml,
   mountHeader, mountFooter, onUser, isAdmin, login,
 } from "./common.js";
 
@@ -152,6 +153,18 @@ function fill(d) {
   }
 })();
 
+// ---- 표지 data URI → Storage 업로드 (blog/images/) --------------------------
+// 설계 원칙: 텍스트는 Firestore, 이미지는 Storage 에 저장하고 링크만 문서에 담는다.
+async function uploadDataUri(dataUri) {
+  const blob = await (await fetch(dataUri)).blob();   // data URI → Blob (svg/png 등)
+  const type = blob.type || "image/svg+xml";
+  const ext = type.includes("svg") ? "svg" : (type.split("/")[1] || "img").split("+")[0];
+  const path = `blog/images/cover_${Math.floor(performance.timeOrigin + performance.now())}.${ext}`;
+  const r = storageRef(storage, path);
+  await uploadBytes(r, blob, { contentType: type });
+  return await getDownloadURL(r);
+}
+
 // ---- 등록 -------------------------------------------------------------------
 let registering = false;
 async function register({ auto = false } = {}) {
@@ -183,10 +196,18 @@ async function register({ auto = false } = {}) {
       }
     }
 
+    // 표지가 data URI 면 Storage 에 업로드하고 링크로 교체 (이미지는 Storage 원칙)
+    let coverImage = coverEl.value.trim();
+    if (coverImage.startsWith("data:")) {
+      $("saveStatus").innerHTML = `<span class="spinner"></span> 표지 이미지를 Storage 에 업로드 중…`;
+      coverImage = await uploadDataUri(coverImage);
+    }
+
     const tags = $("tags").value.split(",").map((t) => t.trim()).filter(Boolean);
+    $("saveStatus").innerHTML = `<span class="spinner"></span> 등록 중…`;
     const refDoc = await addDoc(collection(db, "posts"), {
       title, content, excerpt: excerptFrom(content), tags,
-      coverImage: coverEl.value.trim(),
+      coverImage,
       published: $("published").checked,
       authorEmail: user.email, authorUid: user.uid,
       createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
