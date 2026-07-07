@@ -121,11 +121,30 @@ export function onUser(cb) {
 // ---- Markdown 렌더 ----------------------------------------------------------
 marked.setOptions({ gfm: true, breaks: false });
 
+// 유튜브 임베드만 허용한다. 그 외 iframe 은 제거(보안). 훅은 모듈 로드 시 1회 등록.
+const YT_EMBED_RE = /^https:\/\/(www\.)?youtube(-nocookie)?\.com\/embed\//i;
+DOMPurify.addHook("uponSanitizeElement", (node) => {
+  if (node.tagName === "IFRAME" && !YT_EMBED_RE.test(node.getAttribute("src") || "")) {
+    node.remove();
+  }
+});
+
+// 단독 줄의 유튜브 링크(<p><a>…</a></p>)를 반응형 임베드로 변환한다.
+// marked 결과(HTML)에서만 치환하므로 코드블록(<pre><code>)은 건드리지 않는다.
+function embedYouTube(html) {
+  return html.replace(
+    /<p>\s*<a href="https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})[^"]*"[^>]*>.*?<\/a>\s*<\/p>/gi,
+    (_m, id) =>
+      `<div class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/${id}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`,
+  );
+}
+
 // 렌더 후 highlightWithin() 으로 코드 하이라이트를 적용합니다(아래 함수).
 export function renderMarkdown(md) {
-  const rawHtml = marked.parse(md || "");
+  const rawHtml = embedYouTube(marked.parse(md || ""));
   return DOMPurify.sanitize(rawHtml, {
-    ADD_ATTR: ["target", "rel"],
+    ADD_TAGS: ["iframe"],
+    ADD_ATTR: ["target", "rel", "allow", "allowfullscreen", "frameborder", "title", "loading"],
   });
 }
 

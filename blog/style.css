@@ -332,6 +332,8 @@ img { max-width: 100%; }
 .article h3 { font-family: var(--head-font); font-weight: 700; font-size: 1.3rem; margin: 1.6em 0 .5em; scroll-margin-top: 92px; }
 .article p { margin: 1.1em 0; }
 .article img { border-radius: 12px; border: 1px solid var(--border); display: block; margin: 1.4em auto; box-shadow: var(--shadow-sm); }
+.article .video-embed { position: relative; width: 100%; aspect-ratio: 16 / 9; margin: 1.6em 0; }
+.article .video-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 12px; box-shadow: var(--shadow-sm); }
 .article a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .article ul, .article ol { padding-left: 1.4em; }
 .article li { margin: .4em 0; }
