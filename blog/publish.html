@@ -153,16 +153,27 @@ function fill(d) {
   }
 })();
 
-// ---- 표지 data URI → Storage 업로드 (blog/images/) --------------------------
+// ---- 이미지 data URI → Storage 업로드 (blog/images/) ------------------------
 // 설계 원칙: 텍스트는 Firestore, 이미지는 Storage 에 저장하고 링크만 문서에 담는다.
-async function uploadDataUri(dataUri) {
+let uploadSeq = 0;
+async function uploadDataUri(dataUri, prefix = "img") {
   const blob = await (await fetch(dataUri)).blob();   // data URI → Blob (svg/png 등)
   const type = blob.type || "image/svg+xml";
   const ext = type.includes("svg") ? "svg" : (type.split("/")[1] || "img").split("+")[0];
-  const path = `blog/images/cover_${Math.floor(performance.timeOrigin + performance.now())}.${ext}`;
-  const r = storageRef(storage, path);
+  const uniq = `${Math.floor(performance.timeOrigin + performance.now())}_${uploadSeq++}`;
+  const r = storageRef(storage, `blog/images/${prefix}_${uniq}.${ext}`);
   await uploadBytes(r, blob, { contentType: type });
   return await getDownloadURL(r);
+}
+
+// 본문 Markdown/HTML 안의 data: 이미지를 모두 Storage 로 올리고 링크로 치환
+async function uploadInlineImages(md) {
+  const uris = [...new Set(md.match(/data:image\/[^)"'\s]+/g) || [])];
+  for (const uri of uris) {
+    const url = await uploadDataUri(uri, "img");
+    md = md.split(uri).join(url);   // 같은 이미지가 여러 번 나와도 모두 치환
+  }
+  return md;
 }
 
 // ---- 등록 -------------------------------------------------------------------
@@ -170,7 +181,7 @@ let registering = false;
 async function register({ auto = false } = {}) {
   if (registering) return;
   const title = $("title").value.trim();
-  const content = contentEl.value.trim();
+  let content = contentEl.value.trim();
   if (!title || !content) {
     if (auto) $("saveStatus").textContent = "자동 등록 취소: 제목/본문이 비어 있습니다.";
     else alert("제목과 본문을 입력하세요.");
@@ -200,7 +211,13 @@ async function register({ auto = false } = {}) {
     let coverImage = coverEl.value.trim();
     if (coverImage.startsWith("data:")) {
       $("saveStatus").innerHTML = `<span class="spinner"></span> 표지 이미지를 Storage 에 업로드 중…`;
-      coverImage = await uploadDataUri(coverImage);
+      coverImage = await uploadDataUri(coverImage, "cover");
+    }
+
+    // 본문 안의 data URI 이미지도 Storage 로 업로드하고 링크로 치환
+    if (content.includes("data:image/")) {
+      $("saveStatus").innerHTML = `<span class="spinner"></span> 본문 이미지를 Storage 에 업로드 중…`;
+      content = await uploadInlineImages(content);
     }
 
     const tags = $("tags").value.split(",").map((t) => t.trim()).filter(Boolean);
