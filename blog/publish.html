@@ -120,7 +120,8 @@ coverEl.addEventListener("input", updateCover);
 // ---- 링크 프리필: publish.html#<base64url(JSON)> ----------------------------
 // JSON = { title, tags:[], coverImage, content, published }
 function b64urlToStr(b64) {
-  const s = b64.replace(/-/g, "+").replace(/_/g, "/");
+  let s = b64.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";           // 패딩 복원 (atob 호환)
   const bin = atob(s);
   const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
   return new TextDecoder().decode(bytes);
