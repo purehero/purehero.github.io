@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>발행 · purehero Tech Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800;900&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+<link id="hljs-light" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link id="hljs-dark" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" disabled>
+<script>
+  (function () { try { document.documentElement.dataset.theme = localStorage.getItem("blog-theme") || "mono"; } catch (e) {} })();
+</script>
+</head>
+<body>
+
+<main class="layout single" id="main">
+  <div id="gate" class="notice"><span class="spinner"></span> 인증 확인 중…</div>
+
+  <section id="editor" class="hidden">
+    <h1 style="letter-spacing:-.02em">글 발행</h1>
+    <p class="drop-hint" id="prefillHint"></p>
+
+    <div class="field">
+      <label for="title">제목</label>
+      <input id="title" type="text" placeholder="글 제목">
+    </div>
+
+    <div class="field">
+      <label for="tags">태그 (쉼표로 구분)</label>
+      <input id="tags" type="text" placeholder="예: Godot, 게임개발, 하우투">
+    </div>
+
+    <div class="field">
+      <label for="cover">표지 이미지 URL / 데이터 URI (SVG 표지도 여기에 그대로)</label>
+      <input id="cover" type="text" placeholder="data:image/svg+xml,... 또는 https://...">
+      <img id="coverPreview" class="hidden" style="margin-top:10px;max-width:320px;border-radius:10px;border:1px solid var(--border)">
+    </div>
+
+    <div class="field">
+      <label>본문 (Markdown)</label>
+      <div class="editor-grid">
+        <div>
+          <textarea id="content" placeholder="# 제목&#10;&#10;내용을 Markdown 으로 작성하세요."></textarea>
+        </div>
+        <div class="preview-pane article" id="preview"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input id="published" type="checkbox" checked style="width:auto"> 공개(발행) 상태로 저장
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn primary" id="saveBtn">등록</button>
+      <a class="btn" href="./index.html">취소</a>
+      <span id="saveStatus" class="drop-hint"></span>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+import {
+  db, auth, addDoc, getDocs, collection, query, where, limit,
+  serverTimestamp, renderMarkdown, highlightWithin, excerptFrom, escapeHtml,
+  mountHeader, mountFooter, onUser, isAdmin, login,
+} from "./common.js";
+
+mountHeader("");
+mountFooter();
+
+let user = null;
+const $ = (id) => document.getElementById(id);
+const gate = $("gate");
+const editor = $("editor");
+
+// ---- 인증 게이트 (write.html 과 동일 패턴) ---------------------------------
+onUser((u) => {
+  user = u;
+  if (!u) {
+    gate.className = "notice";
+    gate.innerHTML = `발행하려면 로그인이 필요합니다.<br><br>
+      <button class="btn primary" id="loginBtn">Google 로그인</button>`;
+    gate.classList.remove("hidden"); editor.classList.add("hidden");
+    $("loginBtn").onclick = () => login().catch((e) => alert("로그인 실패: " + e.message));
+    return;
+  }
+  if (!isAdmin(u)) {
+    gate.className = "notice error";
+    gate.innerHTML = `이 계정(${escapeHtml(u.email)})은 발행 권한이 없습니다.`;
+    gate.classList.remove("hidden"); editor.classList.add("hidden");
+    return;
+  }
+  gate.classList.add("hidden");
+  editor.classList.remove("hidden");
+});
+
+// ---- 미리보기 ---------------------------------------------------------------
+const contentEl = $("content");
+const previewEl = $("preview");
+function updatePreview() {
+  previewEl.innerHTML = renderMarkdown(contentEl.value);
+  highlightWithin(previewEl);
+}
+contentEl.addEventListener("input", updatePreview);
+
+const coverEl = $("cover");
+function updateCover() {
+  const v = coverEl.value.trim();
+  const img = $("coverPreview");
+  if (v) { img.src = v; img.classList.remove("hidden"); }
+  else { img.classList.add("hidden"); }
+}
+coverEl.addEventListener("input", updateCover);
+
+// ---- 링크 프리필: publish.html#<base64url(JSON)> ----------------------------
+// JSON = { title, tags:[], coverImage, content, published }
+function b64urlToStr(b64) {
+  const s = b64.replace(/-/g, "+").replace(/_/g, "/");
+  const bin = atob(s);
+  const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+function fill(d) {
+  if (d.title) $("title").value = d.title;
+  if (Array.isArray(d.tags)) $("tags").value = d.tags.join(", ");
+  if (d.coverImage) coverEl.value = d.coverImage;
+  if (typeof d.content === "string") contentEl.value = d.content;
+  if (typeof d.published === "boolean") $("published").checked = d.published;
+  updatePreview(); updateCover();
+}
+(function loadPrefill() {
+  const hash = location.hash.slice(1);
+  if (!hash) return;
+  try {
+    fill(JSON.parse(b64urlToStr(hash)));
+    $("prefillHint").textContent = "링크로 미리 채워진 글입니다. 확인 후 [등록]을 누르세요.";
+  } catch (e) {
+    $("prefillHint").textContent = "프리필 데이터를 해석하지 못했습니다. 직접 입력하세요.";
+  }
+})();
+
+// ---- 등록 -------------------------------------------------------------------
+$("saveBtn").onclick = async () => {
+  const title = $("title").value.trim();
+  const content = contentEl.value.trim();
+  if (!title) { alert("제목을 입력하세요."); return; }
+  if (!content) { alert("본문을 입력하세요."); return; }
+
+  const btn = $("saveBtn");
+  btn.disabled = true;
+  $("saveStatus").innerHTML = `<span class="spinner"></span> 등록 중…`;
+  try {
+    // 제목 중복 방지 — 같은 제목이 이미 있으면 확인
+    const dup = await getDocs(query(collection(db, "posts"), where("title", "==", title), limit(1)));
+    if (!dup.empty && !confirm("같은 제목의 글이 이미 있습니다. 그래도 새로 등록할까요?")) {
+      btn.disabled = false; $("saveStatus").textContent = "";
+      return;
+    }
+
+    const tags = $("tags").value.split(",").map((t) => t.trim()).filter(Boolean);
+    const refDoc = await addDoc(collection(db, "posts"), {
+      title,
+      content,
+      excerpt: excerptFrom(content),
+      tags,
+      coverImage: coverEl.value.trim(),
+      published: $("published").checked,
+      authorEmail: user.email,
+      authorUid: user.uid,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    location.href = `./post.html?id=${encodeURIComponent(refDoc.id)}`;
+  } catch (e) {
+    $("saveStatus").textContent = "";
+    btn.disabled = false;
+    alert("등록 실패: " + e.message);
+  }
+};
+</script>
+</body>
+</html>
