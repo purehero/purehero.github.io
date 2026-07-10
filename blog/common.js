@@ -46,6 +46,10 @@ export async function getViews(slug) {
     return snap.exists() ? (snap.data().count || 0) : 0;
   } catch { return null; }
 }
+// 사이트 전체 누적 방문 수를 담는 views 문서 id (글 slug 와 겹치지 않는 값).
+// Firestore 는 `__.*__` 형태 문서 id 를 예약하므로 하이픈 형태를 쓴다.
+export const SITE_VIEWS_ID = "site-total";
+
 // 홈에서 인기 글 정렬/표시에 쓸 { slug: count } 맵. 실패 시 빈 객체.
 export async function getAllViews() {
   const map = {};
@@ -270,8 +274,24 @@ export function mountFooter() {
       <a href="${baseDir()}index.html">홈</a>
       <a href="${baseDir()}../">purehero.github.io</a>
     </div>
-    <div class="fcopy">${escapeHtml(SITE.tagline)} · 정적 발행 · 댓글은 Firebase</div>`;
+    <div class="fcopy">${escapeHtml(SITE.tagline)} · 정적 발행 · 댓글은 Firebase<span class="site-visits" id="siteVisits" hidden></span></div>`;
   document.body.appendChild(f);
+
+  // 사이트 전체 누적 방문 수 — 모든 페이지 공통. 세션당 1회만 증가시키고 표시.
+  (async () => {
+    const el = f.querySelector("#siteVisits");
+    if (!el) return;
+    try {
+      if (!sessionStorage.getItem("site-visited")) {
+        if (await bumpViews(SITE_VIEWS_ID)) sessionStorage.setItem("site-visited", "1");
+      }
+    } catch { /* sessionStorage 미지원 등 — 무시 */ }
+    const n = await getViews(SITE_VIEWS_ID);
+    if (n != null) {
+      el.textContent = ` · 누적 방문 ${n.toLocaleString("ko-KR")}회`;
+      el.hidden = false;
+    }
+  })();
 
   // 맨 위로 버튼 (모든 페이지 공통)
   const top = document.createElement("button");
