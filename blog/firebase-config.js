@@ -2,8 +2,8 @@
 // Firebase 설정
 // -----------------------------------------------------------------------------
 // Firebase 콘솔 > 프로젝트 설정 > "내 앱" > 웹 앱 에서 발급받은 값으로 교체하세요.
-// 이 값들은 브라우저에 노출되어도 안전합니다. (실제 보안은 firestore.rules /
-// storage.rules 와 인증으로 보장됩니다.)
+// 이 값들은 브라우저에 노출되어도 안전합니다. (실제 보안은 firestore.rules 와
+// 인증으로 보장됩니다.) 정적 전환 후 Firebase 는 댓글 + 로그인에만 씁니다.
 //
 // 참고: https://firebase.google.com/docs/web/setup
 // -----------------------------------------------------------------------------
@@ -17,9 +17,8 @@ export const firebaseConfig = {
   appId: "1:249596744410:web:c8b0b7bd00fc875da98be3"
 };
 
-// 글을 작성/수정/삭제할 수 있는 관리자 이메일 목록 (소문자).
-// 여기에 없는 계정으로 로그인하면 글 작성 페이지를 볼 수 없습니다.
-// 반드시 firestore.rules / storage.rules 에도 동일한 이메일을 반영하세요.
+// 관리자 이메일 목록 (소문자) — 댓글 삭제(관리) 권한에 쓰입니다.
+// 반드시 firestore.rules 의 adminEmails() 목록과 동일하게 유지하세요.
 export const ADMIN_EMAILS = [
   "purehero@gmail.com",
 ];

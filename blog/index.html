@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>purehero · Tech Guide</title>
-<meta name="description" content="하우투 · 팁 · 기술 노트 — Firebase 기반 기술 가이드 블로그">
+<meta name="description" content="하우투 · 팁 · 기술 노트 — 정적으로 발행하는 기술 가이드 블로그">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800;900&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
@@ -46,10 +46,13 @@
   </aside>
 </main>
 
+<!-- 글 목록 데이터 — blog/tools/build.py 가 채운다 (정적, 백엔드 호출 없음) -->
+<script id="posts-data" type="application/json">[{"slug":"static-blog-howto","title":"정적 블로그로 전환하기 — Firestore 없이 빌드로 발행한다","excerpt":"이 블로그는 원래 Firebase Firestore에서 글을 실시간으로 읽어오는 구조였다. 페이지를 열 때마다 브라우저가 Firestore에 질의(query)를 보내고, 그 결과를 자바스크립트가 렌더링했다. 편했지만 대가가 있었다. 글이 하나도 없는…","coverImage":"./assets/covers/static-blog-howto.svg","tags":["하우투","웹","정적사이트"],"date":"2026-07-08"}]</script>
+
 <script type="module">
 import {
-  db, collection, getDocs, query, where, orderBy,
   mountHeader, mountFooter, fmtDate, escapeHtml, getParam, SITE, currentLayout,
+  getAllViews,
 } from "./common.js";
 import { buildHero, renderCards } from "./templates.js";
 
@@ -136,10 +139,13 @@ function miniHtml(p) {
   const thumb = p.coverImage
     ? `<img class="thumb" src="${escapeHtml(p.coverImage)}" alt="" loading="lazy">`
     : `<div class="thumb">⬡</div>`;
-  return `<a class="mini-post" href="./post.html?id=${encodeURIComponent(p.id)}">
+  const meta = p.views
+    ? `조회 ${p.views.toLocaleString("ko-KR")}회 · ${fmtDate(p.createdAt)}`
+    : fmtDate(p.createdAt);
+  return `<a class="mini-post" href="./p/${encodeURIComponent(p.slug)}.html">
       ${thumb}
       <div><div class="mtitle">${escapeHtml(p.title)}</div>
-        <div class="mdate">${fmtDate(p.createdAt)}</div></div>
+        <div class="mdate">${meta}</div></div>
     </a>`;
 }
 
@@ -149,7 +155,9 @@ function buildSidebar() {
     <div class="name">${escapeHtml(SITE.title)}</div>
     <p>${escapeHtml(SITE.tagline)}<br>실전 하우투와 개발 노트를 기록합니다.</p>`;
 
-  recentEl.innerHTML = allPosts.slice(0, 5).map(miniHtml).join("")
+  // 인기 글: 조회수 내림차순(조회수 없으면 최신순 유지)
+  const popular = [...allPosts].sort((a, b) => (b.views || 0) - (a.views || 0));
+  recentEl.innerHTML = popular.slice(0, 5).map(miniHtml).join("")
     || `<span class="empty" style="padding:0">—</span>`;
 
   const counts = {};
@@ -177,15 +185,12 @@ searchEl.addEventListener("input", () => { searchTerm = searchEl.value.trim(); r
 // 테마(템플릿) 변경 시 홈 전체를 다시 그림
 window.addEventListener("themechange", render);
 
-async function load() {
+function load() {
   try {
-    const q = query(
-      collection(db, "posts"),
-      where("published", "==", true),
-      orderBy("createdAt", "desc"),
-    );
-    const snap = await getDocs(q);
-    allPosts = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    // 목록 데이터는 index.html 에 심어진 JSON 아일랜드에서 읽는다 (정적).
+    const raw = document.getElementById("posts-data").textContent || "[]";
+    // fmtDate 가 date 문자열을 다루도록 createdAt 에 매핑해 준다.
+    allPosts = JSON.parse(raw).map((p) => ({ ...p, createdAt: p.date }));
     loaded = true;
     buildSidebar();
     render();
@@ -193,11 +198,19 @@ async function load() {
     console.error(e);
     heroEl.innerHTML = "";
     listEl.innerHTML = `<div class="notice error">
-      글을 불러오지 못했습니다.<br>Firebase 설정(firebase-config.js)과 색인/규칙을 확인하세요.<br>
-      <small>${escapeHtml(e.message)}</small></div>`;
+      글 목록을 읽지 못했습니다.<br><small>${escapeHtml(e.message)}</small></div>`;
   }
 }
 load();
+
+// 조회수는 Firestore 에서 비동기로 받아 카드/인기 글을 다시 그린다(정적 렌더 후 보강).
+(async function enrichViews() {
+  const views = await getAllViews();
+  if (!loaded || !Object.keys(views).length) return;
+  allPosts.forEach((p) => { p.views = views[p.slug] || 0; });
+  buildSidebar();
+  render();
+})();
 </script>
 </body>
 </html>

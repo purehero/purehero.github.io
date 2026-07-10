@@ -1,41 +1,60 @@
 // =============================================================================
-// common.js — Firebase 초기화 + 공통 유틸 (헤더, 인증, Markdown 렌더)
+// common.js — 정적 블로그 공통 유틸 (헤더, 테마, 코드 하이라이트, 댓글용 Firebase)
+// 글 본문은 빌드 시 정적 HTML 로 baked 되므로 이 파일은 본문을 렌더하지 않는다.
+// Firebase 는 오직 댓글 + Google 로그인에만 쓴다.
 // 모든 페이지에서 ESM 으로 import 합니다.
 // =============================================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc,
-  updateDoc, deleteDoc, query, where, orderBy, serverTimestamp,
-  limit, limitToLast,
+  getFirestore, collection, getDocs, addDoc, query, orderBy, serverTimestamp,
+  doc, getDoc, setDoc, increment,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-  getStorage, ref as storageRef, uploadBytes, getDownloadURL,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import { marked } from "https://cdn.jsdelivr.net/npm/marked@12/+esm";
-import DOMPurify from "https://cdn.jsdelivr.net/npm/dompurify@3/+esm";
 import hljs from "https://cdn.jsdelivr.net/npm/highlight.js@11/+esm";
 
 import { firebaseConfig, ADMIN_EMAILS, SITE } from "./firebase-config.js";
 
-// ---- Firebase 핸들 ----------------------------------------------------------
+// ---- Firebase 핸들 (댓글/인증 전용) -----------------------------------------
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
 export const auth = getAuth(app);
 
-// Firestore / Storage / Auth 재-export (페이지에서 편하게 쓰도록)
+// Firestore(댓글) / Auth 재-export
 export {
-  collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
-  query, where, orderBy, serverTimestamp, limit, limitToLast,
-  storageRef, uploadBytes, getDownloadURL,
+  collection, getDocs, addDoc, query, orderBy, serverTimestamp,
+  doc, getDoc, setDoc, increment,
   GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
 };
 export { SITE, ADMIN_EMAILS };
+
+// ---- 조회수 (Firestore: views/<slug>) ---------------------------------------
+// 정적 블로그라 조회수만 Firestore 카운터로 센다. 규칙에서 +1 증가만 허용한다.
+// 실패(오프라인·규칙 거부)해도 페이지 동작에 영향을 주지 않도록 조용히 무시.
+export async function bumpViews(slug) {
+  try {
+    await setDoc(doc(db, "views", slug), { count: increment(1) }, { merge: true });
+    return true;
+  } catch { return false; }
+}
+export async function getViews(slug) {
+  try {
+    const snap = await getDoc(doc(db, "views", slug));
+    return snap.exists() ? (snap.data().count || 0) : 0;
+  } catch { return null; }
+}
+// 홈에서 인기 글 정렬/표시에 쓸 { slug: count } 맵. 실패 시 빈 객체.
+export async function getAllViews() {
+  const map = {};
+  try {
+    const snap = await getDocs(collection(db, "views"));
+    snap.forEach((d) => { map[d.id] = d.data().count || 0; });
+  } catch { /* noop */ }
+  return map;
+}
 
 // ---- 파비콘 (모든 페이지 공통, 404 방지) -------------------------------------
 (function injectFavicon() {
@@ -118,37 +137,9 @@ export function onUser(cb) {
   return onAuthStateChanged(auth, cb);
 }
 
-// ---- Markdown 렌더 ----------------------------------------------------------
-marked.setOptions({ gfm: true, breaks: false });
-
-// 유튜브 임베드만 허용한다. 그 외 iframe 은 제거(보안). 훅은 모듈 로드 시 1회 등록.
-const YT_EMBED_RE = /^https:\/\/(www\.)?youtube(-nocookie)?\.com\/embed\//i;
-DOMPurify.addHook("uponSanitizeElement", (node) => {
-  if (node.tagName === "IFRAME" && !YT_EMBED_RE.test(node.getAttribute("src") || "")) {
-    node.remove();
-  }
-});
-
-// 단독 줄의 유튜브 링크(<p><a>…</a></p>)를 반응형 임베드로 변환한다.
-// marked 결과(HTML)에서만 치환하므로 코드블록(<pre><code>)은 건드리지 않는다.
-function embedYouTube(html) {
-  return html.replace(
-    /<p>\s*<a href="https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})[^"]*"[^>]*>.*?<\/a>\s*<\/p>/gi,
-    (_m, id) =>
-      `<div class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/${id}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`,
-  );
-}
-
-// 렌더 후 highlightWithin() 으로 코드 하이라이트를 적용합니다(아래 함수).
-export function renderMarkdown(md) {
-  const rawHtml = embedYouTube(marked.parse(md || ""));
-  return DOMPurify.sanitize(rawHtml, {
-    ADD_TAGS: ["iframe"],
-    ADD_ATTR: ["target", "rel", "allow", "allowfullscreen", "frameborder", "title", "loading"],
-  });
-}
-
-// 렌더된 컨테이너 내부 <pre><code> 에 하이라이트 적용
+// ---- 코드 하이라이트 --------------------------------------------------------
+// 본문은 빌드가 이미 HTML 로 렌더해 두므로, 여기서는 baked 된 <pre><code> 에
+// highlight.js 만 적용한다(라이트/다크는 테마에 따라 CSS 가 전환).
 export function highlightWithin(container) {
   container.querySelectorAll("pre code").forEach((block) => {
     try { hljs.highlightElement(block); } catch { /* noop */ }
@@ -215,17 +206,23 @@ export function getParam(name) {
 
 // ---- 공통 헤더 렌더 ---------------------------------------------------------
 // pages: 모든 페이지가 DOMContentLoaded 후 호출. 로그인 상태에 따라 nav 갱신.
+// data-basedir(하위 경로 페이지는 "../")를 반영해 링크 기준을 맞춘다.
+function baseDir() {
+  return document.body.dataset.basedir || "./";
+}
+
 export function mountHeader(active = "") {
+  const base = baseDir();
   const header = document.createElement("header");
   header.className = "site-header";
   header.innerHTML = `
     <div class="inner">
-      <a class="brand" href="./index.html">
+      <a class="brand" href="${base}index.html">
         <span class="title"><span class="hex">⬡</span> ${escapeHtml(SITE.title)}</span>
         <span class="tagline">${escapeHtml(SITE.tagline)}</span>
       </a>
       <nav id="siteNav">
-        <a href="./index.html" class="${active === "home" ? "cta" : ""}">홈</a>
+        <a href="${base}index.html" class="${active === "home" ? "cta" : ""}">홈</a>
         <select class="theme-select" id="themeSelect" title="테마 선택" aria-label="테마 선택">
           ${THEMES.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("")}
         </select>
@@ -243,13 +240,6 @@ export function mountHeader(active = "") {
   const slot = header.querySelector("#authSlot");
   onUser((user) => {
     slot.innerHTML = "";
-    if (isAdmin(user)) {
-      const write = document.createElement("a");
-      write.href = "./write.html";
-      write.textContent = "글쓰기";
-      if (active === "write") write.className = "cta";
-      slot.appendChild(write);
-    }
     if (user) {
       if (user.photoURL) {
         const img = document.createElement("img");
@@ -277,10 +267,10 @@ export function mountFooter() {
   f.innerHTML = `
     <div class="fbrand"><span class="hex">⬡</span> ${escapeHtml(SITE.title)}</div>
     <div class="flinks">
-      <a href="./index.html">홈</a>
-      <a href="../">purehero.github.io</a>
+      <a href="${baseDir()}index.html">홈</a>
+      <a href="${baseDir()}../">purehero.github.io</a>
     </div>
-    <div class="fcopy">${escapeHtml(SITE.tagline)} · Powered by Firebase Firestore + Storage</div>`;
+    <div class="fcopy">${escapeHtml(SITE.tagline)} · 정적 발행 · 댓글은 Firebase</div>`;
   document.body.appendChild(f);
 
   // 맨 위로 버튼 (모든 페이지 공통)

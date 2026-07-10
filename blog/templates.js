@@ -6,13 +6,15 @@
 
 import { escapeHtml, fmtDate } from "./common.js";
 
-const hrefOf = (p) => `./post.html?id=${encodeURIComponent(p.id)}`;
+const hrefOf = (p) => `./p/${encodeURIComponent(p.slug)}.html`;
 const firstTag = (p) => (p.tags || [])[0] || "GUIDE";
 const coverImg = (p, cls) => p.coverImage
   ? `<img class="${cls}" src="${escapeHtml(p.coverImage)}" alt="" loading="lazy">`
   : `<div class="${cls} is-ph">⬡</div>`;
 const tagPills = (p, n = 3) => (p.tags || []).slice(0, n)
   .map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join("");
+const viewsBadge = (p) => p.views
+  ? `<span class="views">👁 ${p.views.toLocaleString("ko-KR")}</span>` : "";
 
 // ---- 카드 -------------------------------------------------------------------
 // 세로 카드 (2col / 3col)
@@ -23,7 +25,7 @@ export function cardVertical(p) {
       <span class="eyebrow">${escapeHtml(firstTag(p))}</span>
       <h2>${escapeHtml(p.title)}</h2>
       <p class="excerpt">${escapeHtml(p.excerpt || "")}</p>
-      <div class="meta"><span class="date">${fmtDate(p.createdAt)}</span>${tagPills(p, 2)}</div>
+      <div class="meta"><span class="date">${fmtDate(p.createdAt)}</span>${viewsBadge(p)}${tagPills(p, 2)}</div>
     </div></a>`;
 }
 // 가로 카드 (list)
@@ -34,7 +36,7 @@ export function cardHorizontal(p) {
       <span class="eyebrow">${escapeHtml(firstTag(p))}</span>
       <h2>${escapeHtml(p.title)}</h2>
       <p class="excerpt">${escapeHtml(p.excerpt || "")}</p>
-      <div class="meta"><span class="date">${fmtDate(p.createdAt)}</span>${tagPills(p, 3)}</div>
+      <div class="meta"><span class="date">${fmtDate(p.createdAt)}</span>${viewsBadge(p)}${tagPills(p, 3)}</div>
     </div></a>`;
 }
 // 스택 카드 (editorial): 텍스트 중심, 큰 제목, 구분선

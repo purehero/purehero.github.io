@@ -2,7 +2,10 @@ rules_version = '2';
 
 // =============================================================================
 // Firestore 보안 규칙 — Firebase 콘솔 > Firestore > 규칙 탭에 붙여넣으세요.
-// ADMIN_EMAILS 는 firebase-config.js 의 값과 반드시 일치시켜야 합니다.
+// 정적 블로그로 전환 후 Firestore 는 "댓글"에만 쓴다. 글 본문/목록은 레포에
+// 커밋된 정적 HTML 이므로 posts 문서 자체는 더 이상 읽고 쓰지 않는다.
+// 댓글 경로: posts/{slug}/comments/{commentId}  (slug = 정적 글 파일명)
+// ADMIN_EMAILS 는 firebase-config.js 의 값과 일치시키세요.
 // =============================================================================
 
 service cloud.firestore {
@@ -23,26 +26,34 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email_verified == true;
     }
 
-    match /posts/{postId} {
-      // 공개된 글은 누구나 읽기. 비공개 글은 관리자만.
-      allow read: if resource.data.published == true || isAdmin();
-      // 작성/수정/삭제는 관리자만.
-      allow create, update, delete: if isAdmin();
+    // 글(posts) 문서 자체는 정적 파일이므로 접근 불가(기본 거부).
+    // 댓글 서브컬렉션만 허용한다. 부모 posts 문서가 없어도 서브컬렉션은 동작.
+    match /posts/{slug}/comments/{commentId} {
+      // 댓글은 누구나 읽기.
+      allow read: if true;
+      // 로그인(이메일 인증)한 사용자만 댓글 작성. 본인 uid 로만.
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() < 5000;
+      // 댓글 삭제는 작성자 본인 또는 관리자.
+      allow delete: if isAdmin()
+        || (isSignedIn() && resource.data.uid == request.auth.uid);
+      allow update: if false;
+    }
 
-      match /comments/{commentId} {
-        // 댓글은 누구나 읽기.
-        allow read: if true;
-        // 로그인(이메일 인증)한 사용자만 댓글 작성. 본인 uid 로만.
-        allow create: if isSignedIn()
-          && request.resource.data.uid == request.auth.uid
-          && request.resource.data.body is string
-          && request.resource.data.body.size() > 0
-          && request.resource.data.body.size() < 5000;
-        // 댓글 삭제는 작성자 본인 또는 관리자.
-        allow delete: if isAdmin()
-          || (isSignedIn() && resource.data.uid == request.auth.uid);
-        allow update: if false;
-      }
+    // 조회수 카운터 — views/{slug} 문서에 { count: number } 만 저장한다.
+    // 정적 블로그라 조회수만 Firestore 로 센다(로그인 불필요).
+    // 누구나 읽기. 생성은 count==1, 수정은 정확히 +1 증가만 허용해 어뷰징을 완화.
+    // (FieldValue.increment 사용 시 규칙은 변환 후 값을 request.resource 에서 본다)
+    match /views/{slug} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count == 1;
+      allow update: if request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count == resource.data.count + 1;
+      allow delete: if false;
     }
   }
 }

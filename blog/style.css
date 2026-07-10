@@ -287,6 +287,7 @@ img { max-width: 100%; }
 }
 .post-card .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .post-card .date { color: var(--muted); font-size: .82rem; }
+.post-card .views { color: var(--muted); font-size: .8rem; white-space: nowrap; }
 
 /* grid=2col (기본), grid=3col */
 .post-list[data-grid="3col"] { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; }
@@ -323,6 +324,7 @@ img { max-width: 100%; }
 .article-head .eyebrow { display: block; margin-bottom: 12px; }
 .article-head h1 { font-family: var(--head-font); font-weight: 800; font-size: clamp(2rem, 5vw, 2.9rem); line-height: 1.18; letter-spacing: -.02em; margin: 0 0 16px; }
 .article-head .meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; color: var(--muted); font-size: .88rem; }
+.article-head .meta .views::before { content: "· "; margin-right: 2px; }
 .article-head .tags { justify-content: center; margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
 .article-head .cover { width: 100%; border-radius: 16px; margin-top: 28px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
 

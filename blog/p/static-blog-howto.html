@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정적 블로그로 전환하기 — Firestore 없이 빌드로 발행한다 · purehero Tech Guide</title>
+<meta name="description" content="이 블로그는 원래 Firebase Firestore에서 글을 실시간으로 읽어오는 구조였다. 페이지를 열 때마다 브라우저가 Firestore에 질의(query)를 보내고, 그 결과를 자바스크립트가 렌더링했다. 편했지만 대가가 있었다. 글이 하나도 없는…">
+<meta property="og:title" content="정적 블로그로 전환하기 — Firestore 없이 빌드로 발행한다">
+<meta property="og:description" content="이 블로그는 원래 Firebase Firestore에서 글을 실시간으로 읽어오는 구조였다. 페이지를 열 때마다 브라우저가 Firestore에 질의(query)를 보내고, 그 결과를 자바스크립트가 렌더링했다. 편했지만 대가가 있었다. 글이 하나도 없는…">
+<meta property="og:type" content="article">
+<meta property="og:image" content="../assets/covers/static-blog-howto.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800;900&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<link id="hljs-light" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link id="hljs-dark" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" disabled>
+<script>
+  (function () { try { document.documentElement.dataset.theme = localStorage.getItem("blog-theme") || "mono"; } catch (e) {} })();
+</script>
+</head>
+<body data-slug="static-blog-howto" data-basedir="../">
+<div class="read-progress" id="readProgress"></div>
+
+<main class="layout" id="layout">
+  <article>
+    <div id="articleRoot">
+      <div class="article-head">
+        <span class="eyebrow">하우투</span>
+        <h1>정적 블로그로 전환하기 — Firestore 없이 빌드로 발행한다</h1>
+        <div class="meta">
+          <span>2026년 7월 8일</span>
+          <span>·</span><span>약 2분 읽기</span>
+          <span id="viewCount" class="views" hidden></span>
+        </div>
+        <div class="tags"><a class="tag" href="../index.html?tag=하우투">하우투</a><a class="tag" href="../index.html?tag=웹">웹</a><a class="tag" href="../index.html?tag=정적사이트">정적사이트</a></div>
+        <img class="cover" src="../assets/covers/static-blog-howto.svg" alt="">
+      </div>
+      <div class="article" id="articleBody"><p>이 블로그는 원래 Firebase Firestore에서 글을 실시간으로 읽어오는 구조였다. 페이지를 열 때마다 브라우저가 Firestore에 질의(query)를 보내고, 그 결과를 자바스크립트가 렌더링했다. 편했지만 대가가 있었다. <strong>글이 하나도 없는 빈 HTML</strong>이 먼저 뜨고, 네트워크 왕복이 끝나야 본문이 나타난다. 검색엔진 크롤러 입장에서도 본문이 보이지 않는다.</p>
+<p>이 글은 그 구조를 <strong>정적 페이지 로딩 방식</strong>으로 바꾼 과정을 정리한다. 핵심 아이디어는 하나다 — <strong>글은 레포에 커밋된 Markdown 파일이고, 빌드 스크립트가 이를 완성된 HTML로 미리 렌더한다.</strong> 백엔드 호출은 댓글에만 남긴다.</p>
+<h2 id="왜-정적으로-바꿨나">왜 정적으로 바꿨나</h2>
+<p>동적 렌더링의 문제는 &quot;본문이 데이터베이스에 있다&quot;는 점이다. 정적 방식은 이 전제를 뒤집는다.</p>
+<ul>
+<li><strong>속도</strong>: 본문이 이미 HTML에 들어 있어 첫 페인트에 바로 보인다.</li>
+<li><strong>SEO</strong>: 크롤러가 자바스크립트를 실행하지 않아도 본문을 읽는다.</li>
+<li><strong>비용/안정성</strong>: 읽기 트래픽이 Firestore 할당량을 소비하지 않는다. GitHub Pages가 그냥 파일을 준다.</li>
+<li><strong>이력 관리</strong>: 글이 git 히스토리에 남는다. 되돌리기·diff가 자연스럽다.</li>
+</ul>
+<blockquote>
+<p>트레이드오프도 있다. 새 글을 쓰면 <strong>빌드를 한 번 돌려 커밋</strong>해야 한다. 실시간 편집기는 사라진다. 하지만 개인 기술 블로그에는 이 편이 더 잘 맞는다.</p>
+</blockquote>
+<h2 id="소스는-markdown-파일">소스는 Markdown 파일</h2>
+<p>글 하나가 파일 하나다. 상단에 YAML frontmatter로 메타데이터를 둔다.</p>
+<pre><code class="language-markdown">---
+title: &quot;글 제목&quot;
+slug: &quot;post-slug&quot;
+date: &quot;2026-07-08&quot;
+tags: [&quot;하우투&quot;, &quot;웹&quot;]
+cover: &quot;./assets/covers/post-slug.svg&quot;
+published: true
+---
+
+여기부터 본문 Markdown …
+</code></pre>
+<p><code>slug</code>가 곧 출력 파일 이름(<code>p/&lt;slug&gt;.html</code>)이자 URL이 된다. 커버 이미지는 Storage에 올리지 않고 <strong>레포에 SVG 파일로 커밋</strong>한다.</p>
+<h2 id="빌드-스크립트가-하는-일">빌드 스크립트가 하는 일</h2>
+<p><code>blog/tools/build.py</code> 한 방이면 된다.</p>
+<pre><code class="language-bash">python blog/tools/build.py
+</code></pre>
+<p>이 스크립트는:</p>
+<ol>
+<li><code>posts/*.md</code>를 모두 읽어 frontmatter와 본문을 분리한다.</li>
+<li>본문을 <code>markdown-it-py</code>로 HTML로 렌더한다(표·코드펜스·취소선 지원).</li>
+<li>글 하나마다 <code>p/&lt;slug&gt;.html</code>을 만든다 — <strong>본문이 그 안에 완성된 HTML로 들어간다.</strong></li>
+<li>이전/다음 글 링크를 날짜순으로 계산해 각 페이지에 박아 넣는다.</li>
+<li><code>index.html</code>의 목록 데이터(JSON)를 다시 채운다.</li>
+</ol>
+<p>코드 하이라이트, 목차(TOC), 읽기 진행률, 댓글은 여전히 클라이언트 자바스크립트가 처리한다. 다만 <strong>본문을 가져오려고 네트워크를 타지 않는다</strong> — 이미 문서 안에 있으니까.</p>
+<h2 id="댓글만-남긴-firebase">댓글만 남긴 Firebase</h2>
+<p>정적 사이트는 서버가 없으니 댓글을 어디엔가 저장해야 한다. 이 블로그는 댓글과 로그인만 Firebase에 남겼다. 규칙도 댓글 전용으로 축소한다.</p>
+<table>
+<thead>
+<tr>
+<th>기능</th>
+<th>이전</th>
+<th>지금</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>글 목록/본문</td>
+<td>Firestore 읽기</td>
+<td>정적 HTML</td>
+</tr>
+<tr>
+<td>이미지</td>
+<td>Storage 업로드</td>
+<td>레포 커밋</td>
+</tr>
+<tr>
+<td>댓글·로그인</td>
+<td>Firebase</td>
+<td>Firebase (유지)</td>
+</tr>
+<tr>
+<td>발행</td>
+<td>웹 편집기</td>
+<td>git 커밋</td>
+</tr>
+</tbody>
+</table>
+<h2 id="마치며">마치며</h2>
+<p>동적에서 정적으로 옮기는 일은 거창해 보이지만, 실제로는 &quot;본문을 어디에 두는가&quot;를 바꾸는 일이다. 데이터베이스에서 파일로. 그 한 번의 결정이 속도·SEO·비용·이력 관리를 한꺼번에 개선한다.</p>
+<h2 id="참고-자료">참고 자료</h2>
+<ul>
+<li><a href="https://markdown-it-py.readthedocs.io/">markdown-it-py 문서</a></li>
+<li><a href="https://docs.github.com/pages">GitHub Pages 공식 문서</a></li>
+</ul>
+</div>
+      <div class="btn-row share-row">
+        <button class="btn" id="copyLinkBtn" type="button">🔗 링크 복사</button>
+      </div>
+      <nav class="post-nav" id="postNav"><span class="pn prev empty-slot"></span><span class="pn next empty-slot"></span></nav>
+    </div>
+
+    <section id="comments" class="comments">
+      <h2>댓글 <span id="commentCount"></span></h2>
+      <div id="commentList"></div>
+      <div id="commentFormWrap"></div>
+    </section>
+  </article>
+
+  <aside class="sidebar">
+    <div class="side-box toc-box hidden" id="tocBox">
+      <h3>목차</h3>
+      <nav id="toc" class="toc"></nav>
+    </div>
+  </aside>
+</main>
+
+<script type="module" src="../post.js"></script>
+</body>
+</html>
