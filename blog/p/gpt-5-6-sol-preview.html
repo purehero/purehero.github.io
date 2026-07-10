@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAI GPT-5.6 &#x27;Sol·Terra·Luna&#x27; 프리뷰 공개 — 지금 알아야 할 것 · purehero Tech Guide</title>
+<meta name="description" content="OpenAI가 차세대 모델 GPT 5.6 시리즈 프리뷰를 공개했다. 헤드라인에 자주 나오는 &quot;Sol&quot;은 이 시리즈의 플래그십 모델 이름이고, 실제로는 Sol·Terra·Luna 세 가지 가 함께 나왔다. 소프트웨어 엔지니어링·컴퓨터 사용·전문 지식 작…">
+<meta property="og:title" content="OpenAI GPT-5.6 &#x27;Sol·Terra·Luna&#x27; 프리뷰 공개 — 지금 알아야 할 것">
+<meta property="og:description" content="OpenAI가 차세대 모델 GPT 5.6 시리즈 프리뷰를 공개했다. 헤드라인에 자주 나오는 &quot;Sol&quot;은 이 시리즈의 플래그십 모델 이름이고, 실제로는 Sol·Terra·Luna 세 가지 가 함께 나왔다. 소프트웨어 엔지니어링·컴퓨터 사용·전문 지식 작…">
+<meta property="og:type" content="article">
+<meta property="og:image" content="../assets/covers/gpt-5-6-sol-preview.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800;900&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<link id="hljs-light" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link id="hljs-dark" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" disabled>
+<script>
+  (function () { try { document.documentElement.dataset.theme = localStorage.getItem("blog-theme") || "mono"; } catch (e) {} })();
+</script>
+</head>
+<body data-slug="gpt-5-6-sol-preview" data-basedir="../">
+<div class="read-progress" id="readProgress"></div>
+
+<main class="layout" id="layout">
+  <article>
+    <div id="articleRoot">
+      <div class="article-head">
+        <span class="eyebrow">AI</span>
+        <h1>OpenAI GPT-5.6 &#x27;Sol·Terra·Luna&#x27; 프리뷰 공개 — 지금 알아야 할 것</h1>
+        <div class="meta">
+          <span>2026년 7월 10일</span>
+          <span>·</span><span>약 6분 읽기</span>
+          <span id="viewCount" class="views" hidden></span>
+        </div>
+        <div class="tags"><a class="tag" href="../index.html?tag=AI">AI</a><a class="tag" href="../index.html?tag=하우투">하우투</a><a class="tag" href="../index.html?tag=팁">팁</a></div>
+        <img class="cover" src="../assets/covers/gpt-5-6-sol-preview.svg" alt="">
+      </div>
+      <div class="article" id="articleBody"><p>OpenAI가 차세대 모델 <strong>GPT-5.6 시리즈</strong> 프리뷰를 공개했다. 헤드라인에 자주 나오는 &quot;Sol&quot;은 이 시리즈의 플래그십 모델 이름이고, 실제로는 <strong>Sol·Terra·Luna 세 가지</strong>가 함께 나왔다. 소프트웨어 엔지니어링·컴퓨터 사용·전문 지식 작업·과학 연구·사이버보안에서 프런티어를 끌어올렸다는 게 OpenAI의 설명이다.</p>
+<p>먼저 흔한 오해 하나를 짚고 가자. &quot;챗GPT 5.6&quot;이라는 말이 돌지만, <strong>프리뷰 기간 동안 GPT-5.6은 ChatGPT에서 쓸 수 없다.</strong> 지금은 OpenAI API와 Codex를 통해 일부 신뢰 파트너·조직에게만 열린 <strong>제한적 프리뷰</strong>다. 일반 사용자용 ChatGPT 탑재와 정식 출시(GA)는 &quot;앞으로 몇 주 안&quot;으로 예고돼 있다.</p>
+<p>이 글은 GPT-5.6에서 <strong>공식 발표로 확인된 것만</strong> 정리한다. 무엇이 공개됐는지(프리뷰의 정확한 의미), Sol·Terra·Luna 세 모델의 차이, 티어별 가격, OpenAI가 밝힌 성능 수치(그리고 그 수치를 읽는 주의점), 지금 어떻게 접근하는지, 개발자가 챙길 점까지 다룬다. 검증되지 않은 서드파티 수치는 넣지 않았다.</p>
+<h2 id="gpt-56-무엇이-공개됐나-프리뷰의-정확한-의미">GPT-5.6, 무엇이 공개됐나 — '프리뷰'의 정확한 의미</h2>
+<p>이번 공개의 핵심은 <strong>정식 출시가 아니라 제한적 프리뷰</strong>라는 점이다. 정리하면:</p>
+<ul>
+<li><strong>누가 쓰나</strong>: OpenAI API와 Codex를 통해 <strong>일부 신뢰 파트너·조직</strong>만. 일반 개발자 전체에 열린 게 아니다.</li>
+<li><strong>ChatGPT</strong>: 프리뷰 동안 <strong>미지원</strong>. 일반 사용자는 아직 GPT-5.6을 만날 수 없다.</li>
+<li><strong>다음 단계</strong>: OpenAI는 Sol·Terra·Luna를 **몇 주 내 정식 출시(GA)**할 계획이라고 밝혔다.</li>
+<li><strong>안전</strong>: OpenAI는 지금까지 중 가장 견고한 안전 스택으로 출시했다고 밝혔다. 특히 고위험 활동·민감한 사이버 요청·반복 악용에 대한 보호를 강화하고, 수 주간 취약점 탐색과 압박 테스트를 거쳤다고 한다.</li>
+</ul>
+<blockquote>
+<p>왜 프리뷰인지가 중요한가? 프리뷰 모델은 API·가격·동작이 GA 전에 바뀔 수 있다. 지금 프로덕션에 박아 넣기보다, <strong>접근 권한이 있다면 평가·실험 용도로</strong> 써 보고 GA를 기다리는 게 안전하다.</p>
+</blockquote>
+<h2 id="sol-terra-luna-3종-라인업">Sol · Terra · Luna — 3종 라인업</h2>
+<p>GPT-5.6은 한 개 모델이 아니라 역할이 다른 세 모델로 나왔다. Anthropic의 Opus/Sonnet/Haiku, Google의 Pro/Flash처럼 <strong>&quot;능력 ↔ 속도·비용&quot;</strong> 축에 세 점을 찍은 구성이다.</p>
+<table>
+<thead>
+<tr>
+<th>모델</th>
+<th>위치(OpenAI 규정)</th>
+<th>쓰임새</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sol</strong></td>
+<td>시리즈 플래그십, 가장 강력한 모델</td>
+<td>최난도 소프트웨어 엔지니어링·에이전트·연구</td>
+</tr>
+<tr>
+<td><strong>Terra</strong></td>
+<td>일상 작업용 균형 모델</td>
+<td>GPT-5.5급 성능을 <strong>2배 저렴</strong>하게</td>
+</tr>
+<tr>
+<td><strong>Luna</strong></td>
+<td>빠르고 저렴한 모델</td>
+<td>최저 비용으로 강한 기본기</td>
+</tr>
+</tbody>
+</table>
+<p>OpenAI에 따르면 GPT-5.6 시리즈 전체가 <strong>소프트웨어 엔지니어링, 컴퓨터 사용, 전문 지식 작업, 과학 연구, 사이버보안</strong> 영역에서 프런티어를 전진시켰다. 즉 Sol만 좋아진 게 아니라, 중·경량 티어(Terra·Luna)의 가성비도 함께 올렸다는 게 이번 발표의 요지다.</p>
+<h2 id="가격-티어별-정리">가격: 티어별 정리</h2>
+<p>프리뷰 시점 기준 100만 토큰당 가격이다(입력/출력, OpenAI 발표).</p>
+<table>
+<thead>
+<tr>
+<th>모델</th>
+<th>입력 / 100만 토큰</th>
+<th>출력 / 100만 토큰</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sol</strong></td>
+<td>$5</td>
+<td>$30</td>
+</tr>
+<tr>
+<td><strong>Terra</strong></td>
+<td>$2.50</td>
+<td>$15</td>
+</tr>
+<tr>
+<td><strong>Luna</strong></td>
+<td>$1</td>
+<td>$6</td>
+</tr>
+</tbody>
+</table>
+<p>Terra는 GPT-5.5와 경쟁력 있는 성능을 <strong>절반 값</strong>에 제공한다는 게 OpenAI의 설명이다. 참고로 같은 최상위 티어끼리 비교하면, Sol의 $5/$30는 Anthropic Claude Fable 5($10/$50)보다 입력·출력 모두 싸다. 다만 <strong>가격만으로 우열을 논할 수는 없다</strong> — 토큰 효율(같은 작업에 몇 토큰을 쓰는지)과 실제 품질이 총비용을 좌우하기 때문이다. 이 점은 성능 섹션에서 다시 짚는다.</p>
+<h2 id="openai가-밝힌-성능">OpenAI가 밝힌 성능</h2>
+<p>아래 수치는 모두 <strong>OpenAI가 공식 발표에서 밝힌 값</strong>이다. 독립 검증된 제3자 수치가 아니므로, &quot;벤더 발표&quot;라는 전제를 달고 읽어야 한다.</p>
+<ul>
+<li><strong>코딩(에이전트)</strong>: GPT-5.6 Sol은 최대 추론(max reasoning)에서 <strong>Artificial Analysis Coding Agent Index 80</strong>으로 새 SOTA를 기록했다고 밝혔다. OpenAI는 이 값이 Claude Fable 5보다 <strong>2.8점 높으면서</strong>, 출력 토큰은 <strong>절반 미만</strong>, 시간도 <strong>절반 미만</strong>, 비용은 <strong>약 1/3 적게</strong> 든다고 주장했다.</li>
+<li><strong>커맨드라인 워크플로</strong>: <strong>Terminal-Bench 2.1</strong>(계획·반복·도구 조율이 필요한 터미널 작업)에서 새 SOTA를 세웠다고 밝혔다.</li>
+</ul>
+<p>이 두 수치가 사실이라면 &quot;더 싸면서 더 강하다&quot;는 강력한 주장이다. 하지만 <a href=".././new-ai-models-2026-performance.html">지난 글</a>에서 짚었듯, 벤더 발표 벤치마크는 <strong>측정 조건</strong>을 반드시 확인해야 한다.</p>
+<blockquote>
+<p><strong>주의</strong>: 위 코딩 지수는 &quot;<strong>max reasoning</strong>&quot;에서 측정된 값이다. 추론 강도를 최대로 올리면 품질은 오르지만 지연·비용도 달라진다. 또 &quot;토큰 절반·비용 1/3&quot; 같은 효율 주장은 특정 벤치마크에서의 상대치이지, 내 워크로드에서 그대로 재현된다는 보장은 없다. 도입 전 <strong>내 작업 표본으로 A/B</strong>를 돌려 직접 재는 게 원칙이다.</p>
+</blockquote>
+<h2 id="지금-어떻게-접근하나">지금 어떻게 접근하나</h2>
+<p>프리뷰 접근 권한이 있는 조직이라면 OpenAI API 또는 Codex로 호출한다. 호출 형태는 기존 OpenAI SDK와 동일하고, <code>model</code>에 프리뷰용 모델 식별자를 넣는 방식이다.</p>
+<pre><code class="language-python">from openai import OpenAI
+
+client = OpenAI()  # OPENAI_API_KEY 환경변수 사용
+
+resp = client.responses.create(
+    model=&quot;gpt-5.6-sol&quot;,   # 프리뷰 모델 식별자는 파트너에게 안내되는 실제 값으로 교체
+    input=&quot;이 저장소의 실패하는 테스트를 찾아 원인을 설명해줘.&quot;,
+)
+print(resp.output_text)
+</code></pre>
+<blockquote>
+<p><strong>정확한 모델 ID는 확정 인용하지 않는다.</strong> 프리뷰 모델의 API 식별자·파라미터는 GA 전에 바뀔 수 있고, 파트너에게 개별 안내된다. 위 <code>model</code> 값은 자리표시자이니, 실제 값은 OpenAI가 제공한 문서로 확인하자. 근거 없는 문자열을 넣으면 호출이 실패한다.</p>
+</blockquote>
+<p>접근 권한이 없다면? 지금은 기다리는 게 답이다. GA가 되면 일반 API와 ChatGPT에서 순차적으로 열릴 예정이다. 그동안은 GPT-5.5(이미 API·ChatGPT·Codex에서 사용 가능)나 다른 프런티어 모델로 파이프라인을 유지하면 된다.</p>
+<h2 id="개발자가-챙길-점-함정">개발자가 챙길 점 / 함정</h2>
+<ul>
+<li><strong>&quot;챗GPT 5.6&quot;이 아니다.</strong> GPT-5.6은 모델 시리즈 이름이고, 프리뷰 동안 ChatGPT에는 없다. 사내 공지나 문서에 &quot;ChatGPT 5.6&quot;으로 적지 않도록.</li>
+<li><strong>프리뷰 = 변동 가능.</strong> 모델 ID·가격·동작이 GA 전에 바뀔 수 있다. 프로덕션 하드코딩은 피하고, 모델명을 설정값으로 빼둔다.</li>
+<li><strong>티어를 목적에 맞춘다.</strong> 최난도만 Sol, 일상은 Terra, 대량·저지연은 Luna. 모든 걸 Sol에 시키면 비용이 샌다. 강한 모델은 계획·검증, 값싼 모델은 대량 실행으로 나누는 라우팅이 총비용을 낮춘다.</li>
+<li><strong>효율 주장은 내 작업으로 재검증.</strong> &quot;토큰 절반·비용 1/3&quot;은 벤치마크 상대치다. 실제 절감은 내 프롬프트·워크로드에서 측정해야 안다.</li>
+<li><strong>안전 분류기 강화.</strong> 사이버·고위험 요청 보호가 강해졌다. 보안 리서치·CTF 같은 정당한 작업도 거부·완화에 걸릴 수 있으니, 워크플로가 여기 해당하면 미리 대비한다.</li>
+<li><strong>벤치마크는 조건과 함께.</strong> SOTA 수치는 &quot;max reasoning&quot; 같은 조건에서 나온다. 조건을 빼고 숫자만 인용하지 말자.</li>
+</ul>
+<p>정리하면, GPT-5.6 Sol·Terra·Luna는 &quot;더 강하고 더 싸다&quot;는 방향을 분명히 보여주는 프리뷰다. 다만 지금은 <strong>제한적 프리뷰</strong>이고 ChatGPT에는 아직 없으며, 성능 수치는 벤더 발표라는 점을 감안해야 한다. 접근 권한이 있다면 평가 용도로 실험하되, 프로덕션 결정은 GA와 내 워크로드 검증 이후로 미루는 게 현명하다.</p>
+<h2 id="참고-자료">참고 자료</h2>
+<ul>
+<li><a href="https://openai.com/index/previewing-gpt-5-6-sol/">Previewing GPT-5.6 Sol: a next-generation model — OpenAI</a></li>
+<li><a href="https://openai.com/index/gpt-5-6/">GPT-5.6: Frontier intelligence that scales with your ambition — OpenAI</a></li>
+<li><a href="https://help.openai.com/en/articles/20001325-a-preview-of-gpt-56-sol-terra-and-luna">A preview of GPT-5.6 Sol, Terra, and Luna — OpenAI Help Center</a></li>
+<li><a href="https://deploymentsafety.openai.com/gpt-5-6-preview">GPT-5.6 Preview System Card — OpenAI Deployment Safety Hub</a></li>
+<li><a href="https://openai.com/index/introducing-gpt-5-5/">Introducing GPT-5.5 — OpenAI</a></li>
+</ul>
+</div>
+      <div class="btn-row share-row">
+        <button class="btn" id="copyLinkBtn" type="button">🔗 링크 복사</button>
+      </div>
+      <nav class="post-nav" id="postNav"><a class="pn prev" href="./claude-code-fable-5-efficient.html"><span class="pn-label">← 이전 글</span><span class="pn-title">Claude Code에서 Fable 5, 돈 아끼며 제대로 쓰는 법</span></a><a class="pn next" href="./new-ai-models-2026-performance.html"><span class="pn-label">다음 글 →</span><span class="pn-title">2026년 중반 쏟아진 새 AI 모델들 — &#x27;성능&#x27;을 오해 없이 읽는 법</span></a></nav>
+    </div>
+
+    <section id="comments" class="comments">
+      <h2>댓글 <span id="commentCount"></span></h2>
+      <div id="commentList"></div>
+      <div id="commentFormWrap"></div>
+    </section>
+  </article>
+
+  <aside class="sidebar">
+    <div class="side-box toc-box hidden" id="tocBox">
+      <h3>목차</h3>
+      <nav id="toc" class="toc"></nav>
+    </div>
+  </aside>
+</main>
+
+<script type="module" src="../post.js"></script>
+</body>
+</html>
