@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anthropic 7월 7일 업데이트 정리 — Cowork 확장·M365 쓰기 도구·Fable 5 크레딧 전환 · purehero Tech Guide</title>
+<meta name="description" content="2026년 7월 7일, Anthropic이 클로드(Claude) 제품군에 세 가지 변화를 한꺼번에 냈다. 새 모델 발표는 아니지만, 일하는 방식과 과금 에 직접 영향을 주는 업데이트라 놓치면 곤란한 것들이다. Claude Cowork가 데스크톱을 넘어…">
+<meta property="og:title" content="Anthropic 7월 7일 업데이트 정리 — Cowork 확장·M365 쓰기 도구·Fable 5 크레딧 전환">
+<meta property="og:description" content="2026년 7월 7일, Anthropic이 클로드(Claude) 제품군에 세 가지 변화를 한꺼번에 냈다. 새 모델 발표는 아니지만, 일하는 방식과 과금 에 직접 영향을 주는 업데이트라 놓치면 곤란한 것들이다. Claude Cowork가 데스크톱을 넘어…">
+<meta property="og:type" content="article">
+<meta property="og:image" content="../assets/covers/anthropic-update-2026-07-07.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800;900&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<link id="hljs-light" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link id="hljs-dark" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" disabled>
+<script>
+  (function () { try { document.documentElement.dataset.theme = localStorage.getItem("blog-theme") || "mono"; } catch (e) {} })();
+</script>
+</head>
+<body data-slug="anthropic-update-2026-07-07" data-basedir="../">
+<div class="read-progress" id="readProgress"></div>
+
+<main class="layout" id="layout">
+  <article>
+    <div id="articleRoot">
+      <div class="article-head">
+        <span class="eyebrow">AI</span>
+        <h1>Anthropic 7월 7일 업데이트 정리 — Cowork 확장·M365 쓰기 도구·Fable 5 크레딧 전환</h1>
+        <div class="meta">
+          <span>2026년 7월 10일</span>
+          <span>·</span><span>약 6분 읽기</span>
+          <span id="viewCount" class="views" hidden></span>
+        </div>
+        <div class="tags"><a class="tag" href="../index.html?tag=AI">AI</a><a class="tag" href="../index.html?tag=하우투">하우투</a><a class="tag" href="../index.html?tag=팁">팁</a></div>
+        <img class="cover" src="../assets/covers/anthropic-update-2026-07-07.svg" alt="">
+      </div>
+      <div class="article" id="articleBody"><p>2026년 7월 7일, Anthropic이 클로드(Claude) 제품군에 세 가지 변화를 한꺼번에 냈다. 새 모델 발표는 아니지만, <strong>일하는 방식과 과금</strong>에 직접 영향을 주는 업데이트라 놓치면 곤란한 것들이다. Claude Cowork가 데스크톱을 넘어 웹·모바일로 확장됐고, Microsoft 365 커넥터에 처음으로 &quot;쓰기&quot; 기능이 붙었으며, Fable 5의 요금 방식이 사용 크레딧으로 전환됐다.</p>
+<p>세 가지 성격이 각기 다르다. Cowork 확장은 <strong>에이전트가 원격에서 자율적으로 돌 수 있는 범위</strong>를 넓혔고, M365 쓰기 도구는 <strong>클로드가 실제로 이메일을 보내고 파일을 만드는</strong> 단계로 넘어갔으며(그래서 권한 관리가 중요해졌다), Fable 5 크레딧 전환은 <strong>최상위 모델을 계속 쓰려면 무엇을 켜야 하는지</strong>를 바꿨다.</p>
+<p>이 글은 이 세 업데이트를 공식 릴리스 노트 기준으로 정리하고, 개발자·팀이 실제로 챙겨야 할 점을 짚는다. 새로 확인해야 할 설정, 권한, 과금 포인트를 중심으로 본다. 참고로 Fable 5 자체의 활용법은 이 블로그의 <a href=".././claude-code-fable-5-efficient.html">Fable 5 효율 사용 글</a>에서 더 자세히 다뤘다.</p>
+<h2 id="7월-7일-한눈에">7월 7일, 한눈에</h2>
+<table>
+<thead>
+<tr>
+<th>업데이트</th>
+<th>무엇이 바뀌었나</th>
+<th>누가 챙겨야 하나</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Claude Cowork 웹·모바일</strong></td>
+<td>데스크톱 전용 → 웹·모바일로 확장, 원격 세션(beta)</td>
+<td>Max 플랜부터 순차 롤아웃 대상 사용자</td>
+</tr>
+<tr>
+<td><strong>Microsoft 365 커넥터 쓰기 도구</strong></td>
+<td>읽기·검색만 되던 것 → 이메일 작성·발송, 캘린더·파일 쓰기 추가</td>
+<td>M365 연동 조직·관리자</td>
+</tr>
+<tr>
+<td><strong>Fable 5 사용 크레딧 전환</strong></td>
+<td>7/7까지 주간 한도 일부 포함 → 이후 크레딧 필요</td>
+<td>Fable 5를 쓰는 유료 플랜 사용자</td>
+</tr>
+</tbody>
+</table>
+<h2 id="claude-cowork-웹모바일로-확장">Claude Cowork, 웹·모바일로 확장</h2>
+<p><strong>Claude Cowork</strong>는 클로드 데스크톱 앱의 에이전틱 작업 탭이다. 이번 업데이트로 데스크톱을 넘어 <strong>웹과 모바일</strong>에서도 쓸 수 있게 됐고, <strong>Max 플랜 사용자부터 시작해 몇 주에 걸쳐 순차 롤아웃</strong>된다.</p>
+<p>핵심은 &quot;원격 세션&quot;이다. 공식 릴리스 노트에 따르면 Cowork는 **세션을 원격에서 실행(beta)**하고, 그 결과로:</p>
+<ul>
+<li>세션과 파일이 <strong>Claude 계정에 저장</strong>된다.</li>
+<li><strong>기기 간 동기화</strong>가 된다 — 데스크톱에서 시작한 작업을 모바일에서 이어 본다.</li>
+<li><strong>예약 작업이 기기가 켜져 있지 않아도</strong> 실행된다.</li>
+</ul>
+<p>즉 &quot;내 컴퓨터가 켜져 있어야 에이전트가 돈다&quot;는 제약이 사라진 것이다. 밤새 돌려두는 작업이나 정기 실행을, 노트북을 닫아둔 채로도 맡길 수 있다.</p>
+<blockquote>
+<p>이건 <a href=".././ai-agent-tool-use-loop.html">이전에 다룬 AI 에이전트</a>의 &quot;오래 도는 자율 작업&quot;을 제품 차원에서 뒷받침하는 변화다. 다만 <strong>beta</strong>이므로, 민감한 작업은 결과를 반드시 검토하고 중요한 파이프라인에 바로 얹지는 말자.</p>
+</blockquote>
+<h2 id="microsoft-365-커넥터-이제-쓰기까지">Microsoft 365 커넥터, 이제 '쓰기'까지</h2>
+<p>지금까지 Microsoft 365 커넥터는 <strong>읽기·검색</strong> 위주였다. 7월 7일 업데이트로 <strong>쓰기(write) 도구</strong>가 추가되면서, 클로드가 M365 안에서 직접 행동할 수 있게 됐다. 공식 릴리스 노트가 명시한 범위:</p>
+<ul>
+<li><strong>이메일</strong>: 작성(draft)·발송(send)·정리(organize)</li>
+<li><strong>캘린더</strong>: 이벤트 관리</li>
+<li><strong>메일박스 설정</strong> 업데이트</li>
+<li><strong>파일</strong>: OneDrive·SharePoint에서 생성·수정</li>
+</ul>
+<p>읽기·검색 도구는 그대로이고, <strong>Teams 기능은 여전히 읽기 전용</strong>이다.</p>
+<p>가장 중요한 포인트는 권한이다. 이 새 기능들은 <strong>조직 관리자의 동의와 활성화(enablement)가 선행돼야</strong> 사용자가 쓸 수 있다. 즉 개인이 임의로 켜는 게 아니라, 관리자가 조직 정책으로 열어줘야 한다.</p>
+<blockquote>
+<p><strong>주의</strong>: &quot;이메일 발송&quot;, &quot;파일 생성&quot; 같은 쓰기 작업은 되돌리기 어려운 외부 행동이다. 되돌릴 수 없는 액션은 사람 확인을 거치도록 워크플로를 설계하고, 관리자는 어떤 사용자·어떤 범위에 이 권한을 열지 신중히 정하자. 읽기 전용에서 쓰기로 넘어가는 순간, 오작동의 파급이 완전히 달라진다.</p>
+</blockquote>
+<h2 id="fable-5-사용-크레딧으로-전환">Fable 5, 사용 크레딧으로 전환</h2>
+<p>Fable 5는 2026년 7월 1일 Claude Platform·claude.ai·Claude Code·Claude Cowork에 전면 공개됐는데, <strong>유료 플랜에서의 포함 방식이 7월 7일을 기점으로 바뀌었다.</strong></p>
+<p>공식 안내에 따르면, Pro·Max·Team 및 일부 Enterprise 플랜에서 Fable 5는 <strong>7월 7일까지 주간 사용 한도의 최대 50%까지 포함</strong>됐고, <strong>그 이후에는 사용 크레딧(usage credits)을 통해</strong> 이용하는 방식으로 전환됐다.</p>
+<p>플랜별로 정리하면:</p>
+<table>
+<thead>
+<tr>
+<th>플랜</th>
+<th>7월 7일까지</th>
+<th>7월 7일 이후</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pro · Max · Team</td>
+<td>주간 한도의 최대 50%까지 Fable 5 포함</td>
+<td>크레딧 활성화 시 계속 사용</td>
+</tr>
+<tr>
+<td>Enterprise Premium 시트</td>
+<td>시트 사용량에서 추가 비용 없이 포함</td>
+<td>크레딧 활성화 시 계속 사용</td>
+</tr>
+<tr>
+<td>Enterprise Standard 시트</td>
+<td>포함 한도 없음</td>
+<td>크레딧으로만 사용 가능</td>
+</tr>
+</tbody>
+</table>
+<p>핵심은 **&quot;크레딧을 켜지 않으면 7월 7일 이후 Fable 5 접근이 끊긴다&quot;**는 점이다. Fable 5를 계속 쓰려면 사용 크레딧을 활성화해야 한다. 최상위 모델을 상시로 쓰던 팀이라면, 갑자기 &quot;모델을 쓸 수 없다&quot;는 상황을 피하기 위해 크레딧 설정을 먼저 확인하는 게 좋다.</p>
+<blockquote>
+<p>Fable 5는 API 기준 입력 100만 토큰당 $10 / 출력 $50로, Opus 4.8($5/$25)의 두 배다. 크레딧을 켠다는 건 그만큼 비용이 붙는다는 뜻이니, &quot;정말 어렵고 긴 작업에만 Fable, 나머지는 Opus·Sonnet&quot;이라는 분리가 더 중요해졌다.</p>
+</blockquote>
+<h2 id="개발자팀이-챙길-점">개발자·팀이 챙길 점</h2>
+<ul>
+<li><strong>Cowork는 beta·순차 롤아웃</strong>: Max 플랜부터 열린다. 원격 세션 결과는 검토하고, 민감·프로덕션 작업엔 아직 신중히.</li>
+<li><strong>M365 쓰기는 관리자 동의 필요</strong>: 개인이 못 켠다. 관리자는 권한 범위를 명확히 하고, 되돌릴 수 없는 액션(이메일 발송 등)은 확인 절차를 둔다. Teams는 여전히 읽기 전용.</li>
+<li><strong>Fable 5 크레딧 확인</strong>: 7월 7일 이후 포함 한도가 끝났다. 계속 쓰려면 사용 크레딧 활성화. 안 켜면 접근 불가.</li>
+<li><strong>비용 분리 전략</strong>: Fable는 어렵고 긴 작업에만, 일상은 Opus·Sonnet으로. 크레딧 전환으로 &quot;무심코 Fable 상시 사용&quot;의 비용이 더 도드라진다.</li>
+<li><strong>정확한 조건은 공식 문서로</strong>: 롤아웃 일정·플랜별 세부는 지역·계정에 따라 다를 수 있으니, 자기 계정의 설정 화면과 공식 릴리스 노트로 최종 확인한다.</li>
+</ul>
+<p>정리하면, 7월 7일 업데이트는 모델이 아니라 **&quot;클로드로 무엇을, 어디서, 어떤 비용으로 하느냐&quot;**를 바꾼 날이다. Cowork로 자율 작업의 무대가 넓어졌고, M365 쓰기로 행동 범위가 커진 만큼 권한 관리의 중요성도 커졌으며, Fable 5는 계속 쓰려면 크레딧이라는 스위치를 의식적으로 켜야 한다. 세 가지 모두 &quot;새 기능을 켜기 전에 권한·비용을 먼저 확인&quot;이라는 같은 교훈으로 수렴한다.</p>
+<h2 id="참고-자료">참고 자료</h2>
+<ul>
+<li><a href="https://support.claude.com/en/articles/12138966-release-notes">Release notes — Claude Help Center</a></li>
+<li><a href="https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans">Manage usage credits for paid Claude plans — Claude Help Center</a></li>
+<li><a href="https://www.anthropic.com/news/redeploying-fable-5">Redeploying Claude Fable 5 — Anthropic</a></li>
+<li><a href="https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5-and-claude-mythos-5">Introducing Claude Fable 5 and Claude Mythos 5 — Claude Platform Docs</a></li>
+</ul>
+</div>
+      <div class="btn-row share-row">
+        <button class="btn" id="copyLinkBtn" type="button">🔗 링크 복사</button>
+      </div>
+      <nav class="post-nav" id="postNav"><a class="pn prev" href="./ai-agent-tool-use-loop.html"><span class="pn-label">← 이전 글</span><span class="pn-title">AI 에이전트, 밑바닥부터 만들기 — 툴 콜링과 에이전틱 루프, 그리고 MCP</span></a><a class="pn next" href="./claude-code-fable-5-efficient.html"><span class="pn-label">다음 글 →</span><span class="pn-title">Claude Code에서 Fable 5, 돈 아끼며 제대로 쓰는 법</span></a></nav>
+    </div>
+
+    <section id="comments" class="comments">
+      <h2>댓글 <span id="commentCount"></span></h2>
+      <div id="commentList"></div>
+      <div id="commentFormWrap"></div>
+    </section>
+  </article>
+
+  <aside class="sidebar">
+    <div class="side-box toc-box hidden" id="tocBox">
+      <h3>목차</h3>
+      <nav id="toc" class="toc"></nav>
+    </div>
+  </aside>
+</main>
+
+<script type="module" src="../post.js"></script>
+</body>
+</html>
