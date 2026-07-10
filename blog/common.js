@@ -48,7 +48,16 @@ export async function getViews(slug) {
 }
 // 사이트 전체 누적 방문 수를 담는 views 문서 id (글 slug 와 겹치지 않는 값).
 // Firestore 는 `__.*__` 형태 문서 id 를 예약하므로 하이픈 형태를 쓴다.
+// 일자별 방문 수는 views/day-YYYY-MM-DD 문서에 따로 누적한다(오늘/어제 표시용).
 export const SITE_VIEWS_ID = "site-total";
+
+// 로컬 기준 offsetDays 만큼 이동한 날짜의 YYYY-MM-DD (방문 수 일자 버킷 키)
+function ymdLocal(offsetDays = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
 
 // 홈에서 인기 글 정렬/표시에 쓸 { slug: count } 맵. 실패 시 빈 객체.
 export async function getAllViews() {
@@ -277,18 +286,28 @@ export function mountFooter() {
     <div class="fcopy">${escapeHtml(SITE.tagline)} · 정적 발행 · 댓글은 Firebase<span class="site-visits" id="siteVisits" hidden></span></div>`;
   document.body.appendChild(f);
 
-  // 사이트 전체 누적 방문 수 — 모든 페이지 공통. 세션당 1회만 증가시키고 표시.
+  // 사이트 방문 수 — 오늘/어제/누적. 모든 페이지 공통. 같은 날 세션당 1회만 증가.
   (async () => {
     const el = f.querySelector("#siteVisits");
     if (!el) return;
+    const today = ymdLocal(0);
+    const yst = ymdLocal(-1);
+    const todayId = "day-" + today;
     try {
-      if (!sessionStorage.getItem("site-visited")) {
-        if (await bumpViews(SITE_VIEWS_ID)) sessionStorage.setItem("site-visited", "1");
+      if (!sessionStorage.getItem("visited-" + today)) {
+        // 누적(site-total) + 오늘(day-<날짜>) 두 카운터를 함께 올린다.
+        const ok = await bumpViews(SITE_VIEWS_ID) && await bumpViews(todayId);
+        if (ok) sessionStorage.setItem("visited-" + today, "1");
       }
     } catch { /* sessionStorage 미지원 등 — 무시 */ }
-    const n = await getViews(SITE_VIEWS_ID);
-    if (n != null) {
-      el.textContent = ` · 누적 방문 ${n.toLocaleString("ko-KR")}회`;
+    const [total, tCnt, yCnt] = await Promise.all([
+      getViews(SITE_VIEWS_ID),
+      getViews(todayId),
+      getViews("day-" + yst),
+    ]);
+    if (total != null) {
+      const n = (v) => (v || 0).toLocaleString("ko-KR");
+      el.textContent = ` · 방문 오늘 ${n(tCnt)} · 어제 ${n(yCnt)} · 누적 ${n(total)}`;
       el.hidden = false;
     }
   })();
