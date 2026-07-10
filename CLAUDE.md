@@ -16,10 +16,11 @@ Top-level areas:
 
 ## Running Locally
 
-No build step. For the blog, ES modules and Google popup login break under `file://`, so use a local server:
+The site itself has no build step, but **the blog has a Python build step** (`blog/tools/build.py`) that renders Markdown sources to static HTML. For the blog, ES modules and Google popup login break under `file://`, so use a local server:
 
 ```bash
 cd blog
+python tools/build.py        # posts/*.md → p/*.html + index.html 갱신
 python -m http.server 8080   # http://localhost:8080/
 ```
 
@@ -27,16 +28,20 @@ python -m http.server 8080   # http://localhost:8080/
 
 ## Blog Architecture (`blog/`)
 
-Serverless blog: static pages + Firebase JS SDK v10 loaded from the gstatic CDN as ES modules (no npm). Data lives in **Firestore** (`posts` collection, `comments` subcollection), images in **Storage** (`blog/images/…`), auth via Google sign-in. Markdown is rendered with `marked` + `DOMPurify` + `highlight.js` (all CDN ESM imports in `common.js`).
+**Static blog.** Posts are Markdown files committed to the repo (`posts/*.md`, YAML frontmatter); `tools/build.py` (Python, `markdown-it-py` + `pyyaml`) renders each into a static page `p/<slug>.html` **with the article body baked into the HTML** and refreshes a JSON data island in `index.html`. Reading a post hits no backend. Firebase JS SDK v10 (gstatic CDN, ESM) is used **only for comments + Google sign-in**. Code highlighting (`highlight.js`) runs client-side on the already-rendered `<pre><code>`.
 
-Pages: `index.html` (list/tags/search), `post.html?id=…` (Markdown render, TOC, comments), `write.html` (admin-only editor with image drag-and-drop upload).
+The source of truth is `posts/*.md`, **not** Firestore. `slug` is the URL/filename. Assets (`cover`, body images) live in `assets/` and are referenced blog-root-relative (`./assets/…`); the build rewrites them to `../assets/…` on post pages. Publishing = write a `.md`, run `build.py`, commit.
 
-Key files and how they interlock:
+Pages/files and how they interlock:
 
-- `firebase-config.js` — `firebaseConfig`, `ADMIN_EMAILS`, `SITE` metadata. **`ADMIN_EMAILS` must stay identical to the `adminEmails()` lists in `firestore.rules` and `storage.rules`** — changing one without the others breaks write permissions. Rules are deployed by pasting into the Firebase console (not by a CLI in this repo).
-- `common.js` — initializes Firebase and re-exports Firestore/Storage/Auth helpers for all pages; also owns the theme system (`THEMES`, `themeDef`, localStorage persistence) and shared header/auth UI.
-- `templates.js` — renders hero/card/list HTML according to the active theme's layout.
-- `style.css` — per-theme palettes in `:root[data-theme="…"]` blocks; layout CSS is driven by `data-grid` / `data-hero` / `data-header` / `.layout[data-sidebar]` attributes, deliberately decoupled from theme ids.
+- `tools/build.py` — the generator. Renders `posts/*.md` → `p/<slug>.html`, updates the `#posts-data` JSON island in `index.html`, and regenerates `post.html` (a redirector from old `?id=<firestoreId>` links to new slugs). Ports `common.js`'s excerpt/readingTime/slug/YouTube-embed logic to keep output consistent.
+- `firebase-config.js` — `firebaseConfig`, `ADMIN_EMAILS`, `SITE`. **`ADMIN_EMAILS` must stay identical to `adminEmails()` in `firestore.rules`** (rules are comments-only now; deployed by pasting into the Firebase console).
+- `common.js` — theme system (`THEMES`, `themeDef`, localStorage), shared header/footer, `highlightWithin`, and the **comments-only** Firebase handles (auth + `posts/<slug>/comments`). No longer imports `marked`/`DOMPurify` or reads the `posts` collection.
+- `post.js` — client logic for `p/<slug>.html`: highlight, code-copy, TOC (from build-assigned heading ids), reading progress, live scores, comments. Does not render the body (baked).
+- `templates.js` — home hero/card/list HTML per active theme's layout; `hrefOf` links to `./p/<slug>.html`.
+- `style.css` — per-theme palettes in `:root[data-theme="…"]`; layout driven by `data-grid`/`data-hero`/`data-header`/`.layout[data-sidebar]`, decoupled from theme ids.
+
+Pages under `p/` are one directory deep, so `common.js`/`post.js` resolve links via `document.body.dataset.basedir` (`"../"` on post pages, default `"./"`).
 
 ### Theme system
 
@@ -44,6 +49,8 @@ A "theme" is a full template, not just colors: each `THEMES` entry in `common.js
 
 ### Publishing posts
 
-The `/tech-post` slash command (`.claude/commands/tech-post.md`) is the established workflow for authoring blog posts: research a topic, write a Korean how-to style Markdown post following the blog's conventions (≥2 `##` sections for auto-TOC, fenced code blocks with language, `## 참고 자료` sources section, 3–5 tags reusing existing ones), and output both a `write.html` paste-ready version and a browser-console snippet that inserts the post via `common.js` while logged in as an admin.
+The `/tech-post` slash command (`.claude/commands/tech-post.md`) is the established workflow: research a topic, write a Korean how-to Markdown post (≥4 `##` sections for auto-TOC, fenced code blocks with language, `## 참고 자료` sources, 3–5 tags reusing existing ones), generate a cover SVG via `tools/covers.py` saved to `assets/covers/<slug>.svg`, write `posts/<date>-<slug>.md`, run `build.py`, and hand off a git-commit command.
 
-Firestore queries on the home page need a composite index on `posts` (`published` asc + `createdAt` desc).
+### Migrating legacy Firestore posts
+
+`tools/MIGRATION.md` + `tools/import_posts.py` do a one-time export (browser console snippet) → `posts/*.md` conversion, downloading Storage/data-URI images into `assets/`. Old `post.html?id=…` links keep working via the redirector (frontmatter `firestoreId` → slug map baked by `build.py`).
