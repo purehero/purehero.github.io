@@ -4,3 +4,10 @@ __pycache__/
 
 # 마이그레이션 임시 내보내기 파일
 posts-export.json
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
