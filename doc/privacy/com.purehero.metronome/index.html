@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metronome — Privacy Policy</title>
+<style>
+  :root{
+    --bg:#f6f4fb; --card:#ffffff; --ink:#211f2b; --muted:#5c5766;
+    --accent:#6a47c0; --accent2:#8b63d6; --line:#e6e1f0; --code:#efeafb;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#0f0d16; --card:#181521; --ink:#ece9f3; --muted:#a49db8;
+      --accent:#b9a0f0; --accent2:#8b63d6; --line:#2a2440; --code:#221d33; }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+    line-height:1.7;padding:24px}
+  .wrap{max-width:760px;margin:0 auto}
+  header.hero{display:flex;align-items:center;gap:14px;margin:12px 0 20px}
+  .logo{width:52px;height:52px;border-radius:14px;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex;align-items:center;justify-content:center;font-size:26px}
+  h1{font-size:1.5rem;margin:0;line-height:1.25}
+  .sub{color:var(--muted);font-size:.9rem;margin-top:2px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:22px 24px;box-shadow:0 1px 3px rgba(60,40,120,.05)}
+  h2{font-size:1.05rem;margin:26px 0 8px;color:var(--accent)}
+  h2:first-of-type{margin-top:6px}
+  p,li{color:var(--ink)}
+  ul{padding-left:20px;margin:8px 0}
+  li{margin:4px 0}
+  a{color:var(--accent);word-break:break-word}
+  .muted{color:var(--muted);font-size:.86rem}
+  code{background:var(--code);padding:1px 6px;border-radius:6px;font-size:.86em}
+  .switch{display:inline-flex;border:1px solid var(--line);border-radius:999px;
+    overflow:hidden;margin-left:auto;flex:0 0 auto}
+  .switch button{border:0;background:transparent;color:var(--muted);
+    padding:7px 14px;font-size:.85rem;cursor:pointer;font-weight:600}
+  .switch button[aria-pressed="true"]{background:var(--accent);color:#fff}
+  footer{color:var(--muted);font-size:.8rem;text-align:center;margin:22px 0 8px}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="logo">🎵</div>
+    <div>
+      <h1 data-en="Metronome — Privacy Policy" data-ko="메트로놈 개인정보처리방침">Metronome — Privacy Policy</h1>
+      <div class="sub" data-en="Last updated: 2026-07-21" data-ko="최종 업데이트일: 2026-07-21">Last updated: 2026-07-21</div>
+    </div>
+    <div class="switch" role="group" aria-label="Language">
+      <button id="btn-en" type="button" aria-pressed="true" onclick="setLang('en')">English</button>
+      <button id="btn-ko" type="button" aria-pressed="false" onclick="setLang('ko')">한국어</button>
+    </div>
+  </header>
+
+  <main class="card">
+    <!-- ================= ENGLISH ================= -->
+    <section id="lang-en">
+      <h2>1. Summary</h2>
+      <p>Metronome ("the app") works without any sign-up or login, and the developer does not collect, store, or transmit any personal information about you. The metronome, tuner, and recording features all run on your device, and recording files are stored only on your device.</p>
+
+      <h2>2. What we do not collect</h2>
+      <ul>
+        <li>Personal identifiers such as name, email, or phone number</li>
+        <li>Account information (there is no login or sign-up)</li>
+        <li>Location data</li>
+        <li>On-device personal data such as contacts, photos, or call logs</li>
+      </ul>
+
+      <h2>3. Data processed on your device only</h2>
+      <ul>
+        <li><strong>Microphone input (tuner &amp; recording)</strong>: The microphone is used for pitch detection in the tuner and for recording your playing. Tuner input is analyzed in real time and discarded immediately; recording files are kept only in your device's internal storage and are never sent to the developer's servers.</li>
+        <li><strong>App settings &amp; presets</strong>: BPM, time signature, theme, and saved presets are stored only on your device.</li>
+      </ul>
+
+      <h2>4. What third-party SDKs collect (advertising)</h2>
+      <p>To keep the app free, it may display ads served through Google AdMob. Under its own policies, AdMob may collect and process the Advertising ID and device/network information.</p>
+      <ul>
+        <li><a href="https://policies.google.com/technologies/ads">Google Advertising &amp; Privacy</a></li>
+        <li><a href="https://policies.google.com/privacy">Google Privacy Policy</a></li>
+      </ul>
+      <p>You can reset your Advertising ID or limit ad personalization in your device settings.</p>
+
+      <h2>5. Permissions and why they are used</h2>
+      <ul>
+        <li><strong>Microphone (RECORD_AUDIO)</strong>: Pitch detection in the chromatic tuner, and recording your playing.</li>
+        <li><strong>Vibration (VIBRATE)</strong>: Beat haptics and the tuner's in-tune alert.</li>
+        <li><strong>Internet (INTERNET) &amp; network state (ACCESS_NETWORK_STATE)</strong>: Loading ads and checking connectivity.</li>
+      </ul>
+
+      <h2>6. Data retention and deletion</h2>
+      <p>Recording files and app settings are stored only on your device. You can delete recordings within the app, and uninstalling the app removes its associated data.</p>
+
+      <h2>7. Children's privacy</h2>
+      <p>The app does not knowingly collect personal information from children.</p>
+
+      <h2>8. Changes to this policy</h2>
+      <p>This policy may be updated to reflect legal or feature changes; significant changes will be indicated by updating the "Last updated" date above.</p>
+
+      <h2>9. Contact</h2>
+      <p>Privacy inquiries: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+    </section>
+
+    <!-- ================= KOREAN ================= -->
+    <section id="lang-ko" hidden>
+      <h2>1. 핵심 요약</h2>
+      <p>메트로놈("본 앱")은 별도의 회원가입이나 로그인 없이 동작하며, 개발자가 이용자의 개인정보를 수집·저장·전송하지 않습니다. 박자·튜너·녹음 기능은 모두 기기 안에서 처리되며, 녹음 파일은 이용자의 기기에만 저장됩니다.</p>
+
+      <h2>2. 우리가 수집하지 않는 것</h2>
+      <ul>
+        <li>이름, 이메일, 전화번호 등 개인 식별 정보</li>
+        <li>계정 정보(로그인·회원가입이 없습니다)</li>
+        <li>위치 정보</li>
+        <li>연락처·사진·통화 기록 등 기기 내 개인 데이터</li>
+      </ul>
+
+      <h2>3. 기기에서만 처리되는 데이터</h2>
+      <ul>
+        <li><strong>마이크 입력(튜너·녹음)</strong>: 튜너의 음정 감지와 연주 녹음을 위해 마이크를 사용합니다. 튜너 입력은 실시간으로 분석 후 즉시 폐기되며, 녹음 파일은 이용자의 기기 내부 저장소에만 보관되고 개발자 서버로 전송되지 않습니다.</li>
+        <li><strong>앱 설정·프리셋</strong>: BPM, 박자표, 테마, 저장한 프리셋 등은 기기 내부에만 저장됩니다.</li>
+      </ul>
+
+      <h2>4. 제3자 SDK가 수집하는 것 (광고)</h2>
+      <p>본 앱은 무료 제공을 위해 광고를 표시할 수 있으며, 광고는 Google AdMob을 통해 게재됩니다. AdMob은 자체 정책에 따라 광고 식별자(Advertising ID)와 기기·네트워크 정보 등을 수집·처리할 수 있습니다.</p>
+      <ul>
+        <li><a href="https://policies.google.com/technologies/ads">Google 광고 및 개인정보 정책</a></li>
+        <li><a href="https://policies.google.com/privacy">Google 개인정보처리방침</a></li>
+      </ul>
+      <p>이용자는 기기 설정에서 광고 식별자를 재설정하거나 맞춤 광고를 제한할 수 있습니다.</p>
+
+      <h2>5. 앱 권한 사용 목적</h2>
+      <ul>
+        <li><strong>마이크(RECORD_AUDIO)</strong>: 크로매틱 튜너의 음정 감지, 연주 녹음.</li>
+        <li><strong>진동(VIBRATE)</strong>: 박자 햅틱, 튜너 인-튠 알림.</li>
+        <li><strong>인터넷(INTERNET)·네트워크 상태(ACCESS_NETWORK_STATE)</strong>: 광고 로드 및 연결 상태 확인.</li>
+      </ul>
+
+      <h2>6. 데이터 보관 및 삭제</h2>
+      <p>녹음 파일과 앱 설정은 기기에만 저장됩니다. 앱 내에서 녹음을 삭제하거나, 앱을 삭제(제거)하면 관련 데이터가 함께 제거됩니다.</p>
+
+      <h2>7. 아동 개인정보</h2>
+      <p>본 앱은 아동을 대상으로 개인정보를 수집하지 않습니다.</p>
+
+      <h2>8. 개인정보처리방침 변경</h2>
+      <p>법령이나 기능 변경에 따라 본 방침이 갱신될 수 있으며, 중요한 변경은 위 최종 업데이트일 갱신으로 안내합니다.</p>
+
+      <h2>9. 문의</h2>
+      <p>개인정보 관련 문의: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+    </section>
+  </main>
+
+  <footer>© 2026 purehero · Metronome</footer>
+</div>
+
+<script>
+  function setLang(lang){
+    var en = lang !== 'ko';
+    document.getElementById('lang-en').hidden = !en;
+    document.getElementById('lang-ko').hidden = en;
+    document.getElementById('btn-en').setAttribute('aria-pressed', en);
+    document.getElementById('btn-ko').setAttribute('aria-pressed', !en);
+    document.documentElement.lang = en ? 'en' : 'ko';
+    // 헤더(제목/날짜) 텍스트도 전환
+    document.querySelectorAll('[data-en]').forEach(function(el){
+      el.textContent = en ? el.getAttribute('data-en') : el.getAttribute('data-ko');
+    });
+    try{ localStorage.setItem('mp_lang', en ? 'en' : 'ko'); }catch(e){}
+  }
+  // 기본 영어. 이전에 사용자가 고른 언어가 있으면 그것을 따른다.
+  (function(){
+    var saved = null;
+    try{ saved = localStorage.getItem('mp_lang'); }catch(e){}
+    setLang(saved === 'ko' ? 'ko' : 'en');
+  })();
+</script>
+</body>
+</html>
