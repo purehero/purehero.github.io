@@ -86,6 +86,16 @@
 
   .chips{display:flex;flex-wrap:wrap;gap:6px}
   .chip{background:var(--chip);border:1px solid var(--line);border-radius:14px;padding:2px 10px;font-size:11px;color:var(--accent)}
+  .badge{display:inline-block;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600;border:1px solid transparent}
+  .badge.enc{background:#fdecea;border-color:#f5b7b1;color:var(--err)}
+  .badge.sus{background:#fdf3e3;border-color:#f0d3a0;color:var(--warn)}
+  .badge.plain{background:transparent;border-color:var(--line);color:var(--dim);font-weight:400}
+  .sig-list{margin:6px 0 0;padding-left:18px;color:var(--fg);font-size:12px;line-height:1.7}
+  .sig-list li::marker{color:var(--dim)}
+  .prot-item{padding:8px 0;border-top:1px solid var(--line)}
+  .prot-item:first-child{border-top:none}
+  .prot-name{color:var(--fg);font-weight:600}
+  .prot-note{color:var(--dim);font-size:11px;margin-top:4px}
 
   .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
   .toolbar input[type=text]{
@@ -420,7 +430,10 @@ async function inflateRaw(comp, maxBytes){
     throw new Error("This browser does not support DecompressionStream");
   const ds = new DecompressionStream("deflate-raw");
   const writer = ds.writable.getWriter();
-  writer.write(comp); writer.close();
+  // maxBytes에 도달해 reader.cancel()로 중단하면 쓰기 쪽 promise가 AbortError로
+  // 거부된다. 읽어온 결과에는 영향이 없지만, 잡아두지 않으면 unhandled rejection이
+  // 된다(Node에서는 프로세스가 죽는다).
+  writer.write(comp).then(() => writer.close()).catch(() => {});
   const reader = ds.readable.getReader();
   const chunks = []; let total = 0;
   for(;;){
@@ -809,17 +822,191 @@ function summarizeManifest(root){
 
 /* ───────────────────── 8. ELF 헤더 ───────────────────── */
 
+// ELF의 u32/u64를 범위 밖이면 0으로 안전하게 읽는다. u64는 APK 안의 .so 크기가
+// 2^53을 넘을 일이 없으므로 BigInt 없이 Number로 합친다.
+function elfU32(dv, off, le, len){ return off + 4 <= len ? dv.getUint32(off, le) : 0; }
+function elfU64(dv, off, le, len){
+  if (off + 8 > len) return 0;
+  const a = dv.getUint32(off, le), b = dv.getUint32(off + 4, le);
+  return le ? a + b * 4294967296 : b + a * 4294967296;
+}
+
 function parseELF(bytes){
+  if (!bytes || bytes.length < 20) return null;
   if (!(bytes[0] === 0x7f && bytes[1] === 0x45 && bytes[2] === 0x4c && bytes[3] === 0x46)) return null;
-  const cls = bytes[4], dataEnc = bytes[5], le = dataEnc !== 2;
-  const dv = dvOf(bytes);
+  const cls = bytes[4], dataEnc = bytes[5], le = dataEnc !== 2, is64 = cls === 2;
+  const dv = dvOf(bytes), len = bytes.length;
   const eType = dv.getUint16(16, le), eMachine = dv.getUint16(18, le);
+  // 32/64비트는 e_ident 이후 필드 오프셋이 다르다. 위 두 필드만 위치가 같다.
+  const o = is64
+    ? { phoff: 32, shoff: 40, ehsize: 52, phentsize: 54, phnum: 56, shentsize: 58, shnum: 60, shstrndx: 62 }
+    : { phoff: 28, shoff: 32, ehsize: 40, phentsize: 42, phnum: 44, shentsize: 46, shnum: 48, shstrndx: 50 };
+  const rdOff = (at) => is64 ? elfU64(dv, at, le, len) : elfU32(dv, at, le, len);
+  const rdU16 = (at) => at + 2 <= len ? dv.getUint16(at, le) : 0;
   return {
-    bits: cls === 2 ? 64 : 32,
+    bits: is64 ? 64 : 32,
     endian: le ? "LE" : "BE",
+    le, is64,
     type: eType, typeName: ELF_TYPE[eType] || ("0x" + eType.toString(16)),
-    machine: eMachine, machineName: ELF_MACHINE[eMachine] || ("0x" + eMachine.toString(16))
+    machine: eMachine, machineName: ELF_MACHINE[eMachine] || ("0x" + eMachine.toString(16)),
+    phoff: rdOff(o.phoff), shoff: rdOff(o.shoff),
+    ehsize: rdU16(o.ehsize),
+    phentsize: rdU16(o.phentsize), phnum: rdU16(o.phnum),
+    shentsize: rdU16(o.shentsize), shnum: rdU16(o.shnum), shstrndx: rdU16(o.shstrndx)
   };
+}
+
+const PT_LOAD = 1, PT_DYNAMIC = 2, PT_NOTE = 4;
+const PF_X = 1, PF_W = 2, PF_R = 4;
+
+// 프로그램 헤더 테이블. 버퍼가 잘려 있으면 읽을 수 있는 만큼만 돌려준다.
+function parseProgramHeaders(bytes, elf){
+  const out = [];
+  if (!elf || !elf.phoff || !elf.phnum) return out;
+  const stride = elf.phentsize || (elf.is64 ? 56 : 32);
+  const dv = dvOf(bytes), len = bytes.length, le = elf.le;
+  for (let i = 0; i < elf.phnum; i++){
+    const b = elf.phoff + i * stride;
+    if (b + stride > len) break;               // 잘린 꼬리는 조용히 버리지 않고 여기서 멈춘다
+    out.push(elf.is64
+      ? { index: i, type: elfU32(dv, b, le, len), flags: elfU32(dv, b + 4, le, len),
+          offset: elfU64(dv, b + 8, le, len), vaddr: elfU64(dv, b + 16, le, len),
+          filesz: elfU64(dv, b + 32, le, len), memsz: elfU64(dv, b + 40, le, len) }
+      // ELF32는 p_flags 위치가 다르다(끝쪽). 이걸 틀리면 실행 권한 판정이 뒤집힌다.
+      : { index: i, type: elfU32(dv, b, le, len), flags: elfU32(dv, b + 24, le, len),
+          offset: elfU32(dv, b + 4, le, len), vaddr: elfU32(dv, b + 8, le, len),
+          filesz: elfU32(dv, b + 16, le, len), memsz: elfU32(dv, b + 20, le, len) });
+  }
+  return out;
+}
+
+/* ─────────────── 8-2. .so 내부 암호화(패킹) 판정 ─────────────── */
+
+const SO_SCAN_MAX   = 2 * 1024 * 1024; // .so 하나당 풀어볼 최대 바이트
+const SO_ENT_WINDOW = 4096;   // 창 크기. 균일 난수의 기대 엔트로피는 약 7.955
+const SO_ENT_HIGH   = 7.90;   // 이 값을 넘는 창은 사실상 압축/암호화된 것으로 본다
+const SO_ENC_RATIO  = 0.85;   // 고엔트로피 창 비율이 이 이상이면 본문 전체가 불투명
+const SO_PART_RATIO = 0.35;   // 부분 암호화 의심 구간
+const SO_DUP_BLOCK  = 8;      // 중복 검사 블록 크기(실용 블록 암호는 모두 8의 배수)
+const SO_DUP_MAX    = 4096;   // 중복 집계 상한 — 반복 덩어리 입력에서 폭주 방지
+
+function shannonEntropy(bytes, from, to){
+  const n = to - from;
+  if (n <= 0) return -1;
+  const f = new Uint32Array(256);
+  for (let i = from; i < to; i++) f[bytes[i]]++;
+  let h = 0;
+  for (let i = 0; i < 256; i++){
+    if (!f[i]) continue;
+    const p = f[i] / n;
+    h -= p * Math.log2(p);
+  }
+  return h;
+}
+
+// 파일 전체 엔트로피 하나로는 판정할 수 없다. 정상 라이브러리에도 압축 리소스가
+// 박혀 있어 값이 올라가기 때문이다. 창 단위로 훑어 "본문의 몇 %가 불투명한가"를 본다.
+function highEntropyRatio(bytes, from, to){
+  let hi = 0, windows = 0;
+  for (let s = from; s + SO_ENT_WINDOW <= to; s += SO_ENT_WINDOW){
+    windows++;
+    if (shannonEntropy(bytes, s, s + SO_ENT_WINDOW) >= SO_ENT_HIGH) hi++;
+  }
+  return { ratio: windows ? hi / windows : 0, windows };
+}
+
+// 정렬된 중복 블록 개수. 이 크기의 균일 난수에서 8바이트 블록이 겹칠 확률은
+// 사실상 0이므로, 중복이 하나라도 있으면 그 바이트열은 구조를 가진 실제
+// 데이터에서 나온 것이다(= 난수로 채운 껍데기가 아니다).
+function alignedDupBlocks(bytes, from, to, blockSize){
+  const buckets = new Map(), counted = new Set();
+  let dups = 0;
+  for (let i = from; i + blockSize <= to; i += blockSize){
+    let h = 0x811c9dc5;
+    for (let k = 0; k < blockSize; k++){ h ^= bytes[i + k]; h = Math.imul(h, 0x01000193); }
+    const list = buckets.get(h);
+    if (!list){ buckets.set(h, [i]); continue; }
+    let hit = -1;
+    for (const p of list){
+      let same = true;
+      for (let k = 0; k < blockSize; k++) if (bytes[p + k] !== bytes[i + k]){ same = false; break; }
+      if (same){ hit = p; break; }
+    }
+    if (hit < 0){ list.push(i); continue; }
+    if (!counted.has(hit)){ counted.add(hit); if (++dups >= SO_DUP_MAX) break; }
+  }
+  return dups;
+}
+
+// 어떤 헤더 구조도 참조하지 않는 꼬리(오버레이)가 어디서 시작하는지.
+// 파일 밖을 가리키는 주장은 제외한다 — 그건 오버레이가 아니라 크기 필드 트랩이다.
+function elfReferencedEnd(elf, phs, fileSize){
+  const fit = (off, len) => (off >= 0 && len >= 0 && off + len <= fileSize) ? off + len : 0;
+  let max = Math.min(Math.max(elf.ehsize || 0, elf.is64 ? 64 : 52), fileSize);
+  max = Math.max(max, fit(elf.phoff, elf.phnum * (elf.phentsize || (elf.is64 ? 56 : 32))));
+  max = Math.max(max, fit(elf.shoff, elf.shnum * (elf.shentsize || (elf.is64 ? 64 : 40))));
+  for (const p of phs) max = Math.max(max, fit(p.offset, p.filesz));
+  return max;
+}
+
+/**
+ * .so 하나에 내부 암호화(패킹)가 적용되었는지 판정한다.
+ *
+ * @param bytes    압축 해제된 앞부분(전체가 아닐 수 있음)
+ * @param fileSize ZIP이 알려준 원본 전체 크기 — 경계 판정은 항상 이 값으로 한다
+ */
+function analyzeSoProtection(bytes, fileSize){
+  const elf = parseELF(bytes);
+  if (!elf) return { level: "unknown", score: 0, signals: [], note: "notElf" };
+
+  const size = fileSize > 0 ? fileSize : bytes.length;
+  const scanned = bytes.length;
+  const truncated = scanned < size;
+  const phs = parseProgramHeaders(bytes, elf);
+  const signals = [];
+  let score = 0;
+  const add = (id, weight, detail) => { signals.push({ id, detail }); score += weight; };
+
+  if (!elf.shoff || !elf.shnum) add("noShdr", 2, null);
+
+  const loads = phs.filter(p => p.type === PT_LOAD);
+  if (loads.length && !loads.some(p => (p.flags & PF_X) !== 0)) add("noExecLoad", 2, loads.length);
+  const decoys = loads.filter(p => p.flags === 0 || (p.filesz === 0 && p.memsz === 0));
+  if (decoys.length) add("decoyLoad", 2, decoys.map(p => "#" + p.index).join(", "));
+
+  let declaredEnd = 0;
+  for (const p of phs) declaredEnd = Math.max(declaredEnd, p.offset + p.filesz);
+  if (size > 0 && declaredEnd > size * 1.5) add("sizeBomb", 2, Math.round(declaredEnd / size * 10) / 10);
+
+  const referenced = elfReferencedEnd(elf, phs, size);
+  const overlay = size - referenced;
+  const overlayPct = size > 0 ? overlay / size : 0;
+  if (overlay >= SO_ENT_WINDOW && overlayPct >= 0.2) add("overlay", 2, Math.round(overlayPct * 100));
+
+  // 오버레이가 본문이면 거기를, 아니면 읽어온 전체를 잰다.
+  const from = (referenced < scanned && overlayPct >= 0.2) ? referenced : 0;
+  const { ratio, windows } = highEntropyRatio(bytes, from, scanned);
+  const pct = Math.round(ratio * 1000) / 10;
+  if (windows === 0){
+    // 잴 거리가 없으면 판정하지 않는다.
+  } else if (ratio >= SO_ENC_RATIO) add("highEntropy", 4, pct);
+  else if (ratio >= SO_PART_RATIO) add("partialEntropy", 2, pct);
+
+  // 고엔트로피일 때만 의미가 있는 확인 절차: 실제 데이터인가, 난수 껍데기인가.
+  let dups = -1;
+  if (windows > 0 && ratio >= SO_PART_RATIO){
+    dups = alignedDupBlocks(bytes, from, scanned, SO_DUP_BLOCK);
+    if (dups > 0) signals.push({ id: "realData", detail: dups });
+    else signals.push({ id: "randomIndistinguishable", detail: null });
+  }
+
+  let level;
+  if (ratio >= SO_ENC_RATIO && windows > 0) level = "encrypted";
+  else if (ratio >= SO_PART_RATIO || score >= 4) level = "suspect";
+  else level = "clean";
+
+  return { level, score, signals, entropyPct: pct, windows, overlay, overlayBytes: overlay,
+           dups, truncated, scanned, size };
 }
 
 /* ───────────────────── 9. DEX 파서 ───────────────────── */
@@ -963,6 +1150,8 @@ if (typeof window === "undefined" && typeof globalThis !== "undefined"){
   globalThis.DexInspector = {
     decodeMUTF8, uleb128, readVarint, descToDotted, simpleName, flagStr,
     parseStringPool, decodeAXML, parseARSC, parseELF, parseDex, isDexMagic,
+    parseProgramHeaders, analyzeSoProtection, shannonEntropy, highEntropyRatio,
+    alignedDupBlocks, elfReferencedEnd,
     dexModule, dexDisplayName, cmpDexName,
     listZipEntries, extractEntry, readEntries, readZipEntries, inflateRaw,
     pbToTree, decodeManifest, summarizeManifest, serializeXml, typedValue, resolveRef
@@ -1024,6 +1213,22 @@ const T = {
   soTotalCount: "Total .so files", soUniqueCount: "Unique libraries", soTotalSize: "Total original size", supportedAbi: "Supported ABIs",
   abiCount: n => `(${n})`,
   thFileName: "File name", thArch: "Architecture", thElfType: "ELF type", thComp: "Compressed", thOrig: "Original",
+  thProtection: "Protection",
+  soEncryptedCount: "Encrypted libraries",
+  protEncrypted: "Encrypted", protSuspect: "Suspicious", protClean: "Plain", protUnknown: "—",
+  protTitle: "Internally encrypted / packed libraries",
+  protNone: "No internally encrypted native libraries detected.",
+  protScanNote: n => `Entropy measured over the first ${fmtBytes(n)} of each library.`,
+  sig_noShdr: "Section header table stripped — readelf -S/-s and section-based disassembly show nothing",
+  sig_noExecLoad: n => `No executable PT_LOAD among ${n} segment(s) — code is not statically locatable`,
+  sig_decoyLoad: s => `Decoy PT_LOAD ${s} — maps nothing (no permissions or zero size)`,
+  sig_sizeBomb: x => `Declared segment extent is ${x}× the real file size — parser trap`,
+  sig_overlay: p => `${p}% of the file is an overlay no program/section header references`,
+  sig_highEntropy: p => `${p}% of body windows are high-entropy — body is compressed or encrypted`,
+  sig_partialEntropy: p => `${p}% of body windows are high-entropy — partially opaque`,
+  sig_realData: n => `${n} aligned repeated block(s) — derived from real structured data, not random filler`,
+  sig_randomIndistinguishable: "No repeated blocks — encrypted content and random filler are indistinguishable here",
+  protTruncated: (a, b) => `scanned ${fmtBytes(a)} of ${fmtBytes(b)}`,
   elfType_REL: "relocatable", elfType_EXEC: "executable", elfType_DYN: "shared object", elfType_CORE: "core",
   dexParseFail: "DEX parse failed",
   dexHeaderTitle: "DEX header", dexVersion: "Version", sectionCounts: "Section counts",
@@ -1102,9 +1307,15 @@ async function handleFile(file){
           const libs = [];
           for (const e of libEntries){
             const mm = e.name.match(/lib\/([^/]+)\/([^/]+\.so)$/);
-            let elf = null;
-            try { const head = await extractEntry(buf, e, 64); elf = parseELF(head); } catch(err){ /* ELF 헤더 실패 무시 */ }
-            libs.push({ abi: mm ? mm[1] : "?", name: mm ? mm[2] : e.name, full: e.name, compSize: e.compSize, uncompSize: e.uncompSize, elf });
+            let elf = null, prot = null;
+            try {
+              // 헤더 64바이트만으로는 본문이 암호화되었는지 알 수 없다. 앞부분을
+              // SO_SCAN_MAX 만큼 풀어 엔트로피까지 본다(전체를 풀면 큰 APK에서 느려진다).
+              const head = await extractEntry(buf, e, SO_SCAN_MAX);
+              elf = parseELF(head);
+              if (elf) prot = analyzeSoProtection(head, e.uncompSize);
+            } catch(err){ /* ELF 헤더 실패 무시 */ }
+            libs.push({ abi: mm ? mm[1] : "?", name: mm ? mm[2] : e.name, full: e.name, compSize: e.compSize, uncompSize: e.uncompSize, elf, prot });
           }
           state.nativeLibs = libs;
         } catch(err){ console.warn("native 실패", err); addMessage(t("errNative") + err.message, "warn"); }
@@ -1234,25 +1445,65 @@ function renderNative(){
   const uniqueNames = new Set(libs.map(l => l.name)).size;
   const totalUncomp = libs.reduce((a, l) => a + (l.uncompSize || 0), 0);
 
+  const flagged = libs.filter(l => l.prot && (l.prot.level === "encrypted" || l.prot.level === "suspect"));
+  const encCount = libs.filter(l => l.prot && l.prot.level === "encrypted").length;
+
   let html = `<div class="card"><h3>${t("summary")}</h3><div class="kv">
     <div class="k">${t("soTotalCount")}</div><div class="v">${libs.length}</div>
     <div class="k">${t("soUniqueCount")}</div><div class="v">${uniqueNames}</div>
     <div class="k">${t("soTotalSize")}</div><div class="v">${fmtBytes(totalUncomp)}</div>
+    <div class="k">${t("soEncryptedCount")}</div><div class="v">${encCount ? `<span class="badge enc">${encCount}</span>` : "0"}</div>
     <div class="k">${t("supportedAbi")}</div><div class="v"><div class="chips">${abis.map(a => `<span class="chip">${esc(a)}</span>`).join("")}</div></div>
   </div></div>`;
+
+  html += renderProtectionCard(flagged);
 
   for (const abi of abis){
     const rows = byAbi[abi].map(l => {
       const arch = l.elf ? `${l.elf.bits}bit · ${l.elf.machineName}` : "—";
       const etype = elfTypeLabel(l.elf);
-      return `<tr><td>${esc(l.name)}</td><td>${esc(arch)}</td><td>${esc(etype)}</td>
+      return `<tr><td>${esc(l.name)}</td><td>${esc(arch)}</td><td>${esc(etype)}</td><td>${protBadge(l.prot)}</td>
         <td class="num">${fmtBytes(l.compSize)}</td><td class="num">${fmtBytes(l.uncompSize)}</td></tr>`;
     }).join("");
     html += `<div class="card"><h3>${esc(abi)} <span class="mono-sm">${esc(t("abiCount", byAbi[abi].length))}</span></h3>
-      <table><thead><tr><th>${t("thFileName")}</th><th>${t("thArch")}</th><th>${t("thElfType")}</th><th class="num">${t("thComp")}</th><th class="num">${t("thOrig")}</th></tr></thead>
+      <table><thead><tr><th>${t("thFileName")}</th><th>${t("thArch")}</th><th>${t("thElfType")}</th><th>${t("thProtection")}</th><th class="num">${t("thComp")}</th><th class="num">${t("thOrig")}</th></tr></thead>
       <tbody>${rows}</tbody></table></div>`;
   }
   $("panel-native").innerHTML = html;
+}
+
+function protBadge(prot){
+  if (!prot) return `<span class="badge plain">${t("protUnknown")}</span>`;
+  if (prot.level === "encrypted") return `<span class="badge enc">${t("protEncrypted")}</span>`;
+  if (prot.level === "suspect") return `<span class="badge sus">${t("protSuspect")}</span>`;
+  if (prot.level === "clean") return `<span class="badge plain">${t("protClean")}</span>`;
+  return `<span class="badge plain">${t("protUnknown")}</span>`;
+}
+
+// 왜 그렇게 판정했는지를 근거 목록으로 같이 보여준다. 배지만 있으면
+// 오탐인지 아닌지 사용자가 확인할 방법이 없다.
+function signalText(sig){
+  const v = T["sig_" + sig.id];
+  if (v == null) return sig.id;
+  return typeof v === "function" ? v(sig.detail) : v;
+}
+
+function renderProtectionCard(flagged){
+  let body;
+  if (!flagged.length){
+    body = `<div class="empty-hint">${t("protNone")}</div>`;
+  } else {
+    body = flagged.map(l => {
+      const p = l.prot;
+      const note = p.truncated ? `<div class="prot-note">${esc(t("protTruncated", p.scanned, p.size))}</div>` : "";
+      return `<div class="prot-item">
+        <div><span class="prot-name">${esc(l.abi)}/${esc(l.name)}</span> ${protBadge(p)}</div>
+        <ul class="sig-list">${p.signals.map(s => `<li>${esc(signalText(s))}</li>`).join("")}</ul>
+        ${note}</div>`;
+    }).join("");
+  }
+  return `<div class="card"><h3>${t("protTitle")}</h3>${body}
+    <div class="prot-note">${esc(t("protScanNote", SO_SCAN_MAX))}</div></div>`;
 }
 
 /* ── 덱스 하위 탭 ── */
