@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>devicefp — cross-version validation report</title>
+<meta name="description" content="Validation of the devicefp suite across 34 handsets and nine Android versions: what it collects, how to integrate it, defects found and fixed, and the limits of the run.">
+<style>
+  /* Standalone reset. The hosted copy of this page gets one from its host; a file
+     opened straight in a browser does not, and without it the margins differ. */
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0}
+  h1,h2,h3,p,ul,ol,pre,figure{margin:0}
+  table{border-collapse:collapse}
+  img{max-width:100%;height:auto}
+</style>
+</head>
+<body>
+<style>
+  :root{
+    --ground:#F6F7F9; --panel:#FFFFFF; --panel-2:#EEF1F5;
+    --ink:#14181E; --ink-2:#3A424D; --muted:#67717E;
+    --line:#DDE1E7; --line-2:#C8CFD8;
+    --accent:#2F5D8C;
+    --pass:#2C6E52; --watch:#8A6516; --flag:#A03A31;
+    --flag-bg:#F8E9E7;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:system-ui,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"Cascadia Mono",Consolas,"DejaVu Sans Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ground:#11151A; --panel:#181D24; --panel-2:#1E242C;
+      --ink:#DCE2E9; --ink-2:#B4BEC9; --muted:#8C97A5;
+      --line:#262D36; --line-2:#333C47;
+      --accent:#7EA9D6;
+      --pass:#55A882; --watch:#C79A45; --flag:#D3766C;
+      --flag-bg:#2A1917;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#11151A; --panel:#181D24; --panel-2:#1E242C;
+    --ink:#DCE2E9; --ink-2:#B4BEC9; --muted:#8C97A5;
+    --line:#262D36; --line-2:#333C47;
+    --accent:#7EA9D6;
+    --pass:#55A882; --watch:#C79A45; --flag:#D3766C;
+    --flag-bg:#2A1917;
+  }
+  :root[data-theme="light"]{
+    --ground:#F6F7F9; --panel:#FFFFFF; --panel-2:#EEF1F5;
+    --ink:#14181E; --ink-2:#3A424D; --muted:#67717E;
+    --line:#DDE1E7; --line-2:#C8CFD8;
+    --accent:#2F5D8C;
+    --pass:#2C6E52; --watch:#8A6516; --flag:#A03A31;
+    --flag-bg:#F8E9E7;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);
+       font-family:var(--sans);font-size:16px;line-height:1.62;
+       -webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px 96px}
+  .prose{max-width:68ch}
+
+  header.mast{border-bottom:2px solid var(--ink);padding:56px 0 20px;margin-bottom:40px}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+          color:var(--accent);margin:0 0 14px}
+  h1{font-family:var(--serif);font-weight:400;font-size:clamp(30px,4.4vw,46px);
+     line-height:1.12;letter-spacing:-.012em;margin:0 0 18px;text-wrap:balance}
+  .runline{display:flex;flex-wrap:wrap;gap:6px 26px;font-family:var(--mono);
+           font-size:12.5px;color:var(--muted)}
+  .runline b{color:var(--ink-2);font-weight:600}
+
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));
+         gap:1px;background:var(--line);border:1px solid var(--line);margin:0 0 44px}
+  .tile{background:var(--panel);padding:18px}
+  .tile .lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;
+             text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+  .tile .val{font-family:var(--serif);font-size:30px;line-height:1;
+             font-variant-numeric:tabular-nums}
+  .tile .sub{font-size:12.5px;color:var(--muted);margin:7px 0 0;line-height:1.42}
+  .tile.good .val{color:var(--pass)}
+
+  section{margin:0 0 54px}
+  .eyebrow{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+           text-transform:uppercase;padding:3px 8px;border:1px solid var(--line-2);
+           color:var(--muted);margin:0 0 14px}
+  .eyebrow.fixed{color:var(--pass);border-color:var(--pass)}
+  .eyebrow.open{color:var(--watch);border-color:var(--watch)}
+  .eyebrow.found{color:var(--flag);border-color:var(--flag)}
+  h2{font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.22;
+     margin:0 0 14px;letter-spacing:-.008em;text-wrap:balance}
+  h3{font-family:var(--sans);font-weight:650;font-size:15.5px;margin:26px 0 8px}
+  .rec h3, .prose h3:first-of-type{margin-top:0}
+  p{margin:0 0 14px}
+  code{font-family:var(--mono);font-size:.875em;background:var(--panel-2);
+       padding:1.5px 5px;border-radius:2px}
+  .dim{color:var(--muted)}
+
+  .rec{background:var(--panel);border:1px solid var(--line);
+       border-left:3px solid var(--line-2);padding:20px 22px;margin:0 0 16px}
+  .rec.fx{border-left-color:var(--pass)}
+  .rec.op{border-left-color:var(--watch)}
+  .rec p:last-child{margin-bottom:0}
+  .rid{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+       color:var(--muted);display:block;margin-bottom:5px}
+
+  .scroll{overflow-x:auto;border:1px solid var(--line);background:var(--panel);margin:0 0 12px}
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--line);white-space:nowrap}
+  thead th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
+           text-transform:uppercase;color:var(--muted);font-weight:500;
+           background:var(--panel-2);position:sticky;top:0}
+  tbody tr:last-child td{border-bottom:none}
+  .mono{font-family:var(--mono);font-size:12.5px}
+  .num{font-variant-numeric:tabular-nums}
+  td.st{white-space:normal;min-width:212px}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;
+       vertical-align:1px}
+  .d-pass{background:var(--pass)} .d-watch{background:var(--watch)} .d-flag{background:var(--flag)}
+  tr.r-flag{background:var(--flag-bg)}
+  tr.r-watch td:first-child{box-shadow:inset 3px 0 0 var(--watch)}
+  tr.r-flag td:first-child{box-shadow:inset 3px 0 0 var(--flag)}
+
+  .ba{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line);
+      border:1px solid var(--line);margin:14px 0}
+  @media(min-width:620px){.ba{grid-template-columns:1fr 1fr}}
+  .ba > div{background:var(--panel);padding:14px 16px}
+  .ba .lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+           text-transform:uppercase;color:var(--muted);margin:0 0 7px}
+  .ba .big{font-family:var(--mono);font-size:19px;font-variant-numeric:tabular-nums}
+  .ba .note{font-size:12.5px;color:var(--muted);margin:7px 0 0}
+  .ba .after .big{color:var(--flag)}
+
+
+  pre{font-family:var(--mono);font-size:12.5px;line-height:1.55;margin:0 0 14px;
+      background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
+      padding:14px 16px;overflow-x:auto}
+  pre .c{color:var(--muted)}
+  .steps{counter-reset:step;list-style:none;padding:0;margin:0 0 20px}
+  .steps > li{counter-increment:step;position:relative;padding-left:34px;margin:0 0 20px}
+  .steps > li::before{content:counter(step);position:absolute;left:0;top:1px;
+      font-family:var(--mono);font-size:11px;width:22px;height:22px;line-height:21px;
+      text-align:center;border:1px solid var(--line-2);color:var(--muted)}
+  .steps h3{margin:0 0 6px}
+  .note{font-size:12.5px;color:var(--muted);margin:0 0 8px;max-width:68ch}
+  .caption{font-size:12.5px;color:var(--muted);margin:0 0 30px;max-width:68ch}
+  footer{border-top:1px solid var(--line);padding-top:22px;margin-top:56px;
+         font-size:13px;color:var(--muted)}
+  a{color:var(--accent)}
+  a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+<header class="mast">
+  <p class="kicker">On-device validation &middot; harness-loop</p>
+  <h1>devicefp across nine Android versions</h1>
+  <div class="runline">
+    <span><b>34</b> handsets</span>
+    <span><b>api27&ndash;api37</b>, 9 levels</span>
+    <span><b>10</b> vendors</span>
+    <span>validated at logic <b>13</b>, run <b>r21</b></span>
+    <span>packaged at logic <b>15</b></span>
+    <span>2026-08-03</span>
+  </div>
+</header>
+
+<div class="tiles">
+  <div class="tile good">
+    <p class="lab">Gating result</p>
+    <div class="val">34/34</div>
+    <p class="sub">Every declared gating check passes on every handset, four consecutive rounds</p>
+  </div>
+  <div class="tile good">
+    <p class="lab">Defects fixed</p>
+    <div class="val">3</div>
+    <p class="sub">Two native, one Kotlin, each re-verified on the handsets that showed it</p>
+  </div>
+  <div class="tile">
+    <p class="lab">False positives</p>
+    <div class="val">0</div>
+    <p class="sub">Every advisory still standing is a true positive</p>
+  </div>
+  <div class="tile">
+    <p class="lab">Collection time</p>
+    <div class="val">455<span style="font-size:15px;color:var(--muted)">ms</span></div>
+    <p class="sub">Median of 34; range 168&ndash;1775&nbsp;ms</p>
+  </div>
+</div>
+
+<section>
+  <span class="eyebrow">Verdict</span>
+  <h2>No OS-version-attributable defect remains</h2>
+  <div class="prose">
+    <p>Three code defects surfaced during this campaign. Two were specific to a platform
+    version and one to a vendor; all three are fixed and re-verified on the handsets that
+    exhibited them. Every remaining advisory across the fleet is a correct reading of a
+    real device condition: six handsets have unlocked bootloaders and say so, and one
+    handset is misrepresenting its hardware and is now flagged for it.</p>
+    <p>The figures throughout describe logic 13, run r21 &mdash; the last round before the
+    library was split out for packaging. That split is covered further down, along with the
+    one thing it left open.</p>
+    <p>Collectors behave consistently across versions. All eight report on every handset,
+    and the missing-signal set is the same families at every API level &mdash; no SIM
+    inserted, no proxy configured, no GSF id &mdash; rather than anything
+    version-specific. Fingerprints are stable both within a run and across app
+    restarts.</p>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow fixed">Fixed</span>
+  <h2>Defects found and closed</h2>
+
+  <div class="rec fx">
+    <span class="rid">Defect 2 &middot; native &middot; api29 arm64</span>
+    <h3>Reading a libc prologue killed the whole collection</h3>
+    <p>The inline-hook probe dereferenced a libc code pointer directly to inspect the
+    function prologue. Android 10 maps AArch64 platform libraries execute-only, so the
+    read faults. The process died after gathering everything and before sending, which is
+    why it surfaced as silence rather than as a failing check: the client re-registered a
+    few seconds after taking a <code>collect</code> and delivered nothing.</p>
+    <p>Execute-only was withdrawn by api34 and never applied to armeabi-v7a, which is why
+    only three handsets were affected. Fixed by reading the instruction bytes through
+    <code>/proc/self/mem</code>, which the kernel performs on the caller's behalf and is
+    not bound by the mapping's read bit &mdash; so the probe keeps working on
+    execute-only devices instead of being skipped there.</p>
+  </div>
+
+  <div class="rec fx">
+    <span class="rid">Defect 5 &middot; native &middot; api29&ndash;api30</span>
+    <h3>ART's own JIT cache was reported as a tamper indicator</h3>
+    <p>Healthy handsets with locked bootloaders raised
+    <code>anonymous_executable_region</code> and
+    <code>deleted_executable_mapping</code>, cutting confidence to 0.48. Not a heuristic
+    problem but a naming mismatch in the exclusion list: the api29 path is
+    <code>/memfd:/jit-cache</code>, with a second slash the <code>"/memfd:jit"</code>
+    test could not match, and the affected api30 handset names its ashmem region
+    <code>jit-zygote-cache</code> rather than <code>dalvik-*</code>.</p>
+    <p>One such line raises both bits at once, satisfying the <code>(deleted)</code> test
+    and the <code>memfd:</code> test together, which accounts for every number in the
+    observed distribution. After the fix the rate is 0/34 at every API level, and the
+    other 30 handsets did not change by a single bit &mdash; the exclusion was tightened
+    onto the real names, not widened.</p>
+  </div>
+
+  <div class="rec fx">
+    <span class="rid">Defect 3 &middot; Kotlin &middot; vendor-specific</span>
+    <h3>An impossible panel DPI was accepted as a measurement</h3>
+    <p>One handset reports <code>display.physical_dpi = 3976x3958</code> where the other
+    33 land between 260 and 452; a second reports <code>72x72</code>. The value comes from
+    panel metadata this vendor populates wrongly, and the collector passed it through
+    verbatim at <code>IMMUTABLE</code> weight 0.7.</p>
+    <p>Being wrong but constant, it satisfied every stability check &mdash; precisely the
+    failure mode the codebase already refuses elsewhere, where a bucket that cannot be
+    determined is left absent rather than published. The signal is now absent outside
+    100&ndash;1200&nbsp;dpi. Exactly two handsets changed; no legitimate value was
+    dropped.</p>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow found">Found</span>
+  <h2>One handset is not the hardware it claims to be</h2>
+  <div class="prose">
+    <p>SM-S908E presents a coherent Galaxy S22 Ultra identity &mdash; board
+    <code>taro</code>, a Snapdragon 8 Gen 1 &mdash; over hardware that is nothing like
+    one: Adreno 650 rather than 730, four cores rather than eight, 3&nbsp;GB rather than
+    8&ndash;12, a 720&times;1280 panel rather than 1440&times;3088, and software-only key
+    attestation. The Build fields and the property store agree with each other
+    throughout, so the existing layer-comparison check reported no mismatch.</p>
+    <p>Two structural rules were added in response. Rather than asking whether the layers
+    agree, they ask whether the answer is possible at all: a bootloader that published a
+    verified-boot state also published a lock state, and a platform claiming api31 or
+    above has the <code>ro.soc.model</code> property that Android 12 mandates. Both were
+    validated against all 34 handsets before being written.</p>
+  </div>
+  <div class="ba">
+    <div>
+      <p class="lab">Before &mdash; logic 12</p>
+      <div class="big">0x0100 &middot; 0.35</div>
+      <p class="note">software attestation only</p>
+    </div>
+    <div class="after">
+      <p class="lab">After &mdash; logic 13</p>
+      <div class="big">0x2100 &middot; 0.07</div>
+      <p class="note">property set incoherent, plus software attestation</p>
+    </div>
+  </div>
+  <p class="caption">Fires on one handset and none of the other 33, including all six with
+  unlocked bootloaders &mdash; those publish a lock state, so the rule correctly stays
+  quiet. Both rules are defeated by a spoofer who adds the two missing properties: they
+  catch incomplete synthesis, and do not replace the attestation signal, which is the only
+  anchor rooted in a key the device does not hold.</p>
+</section>
+
+
+<section>
+  <span class="eyebrow">Inventory</span>
+  <h2>What the suite collects</h2>
+  <div class="prose">
+    <p>Every value is hashed on the device; the report carries digests, never the raw
+    string, except for a comparable subset the harness keeps in the clear so two runs can
+    be diffed. A signal that cannot be read is reported as absent rather than dropped
+    &mdash; absence is itself weakly identifying, and it keeps a blocked path from
+    reading as a clean result.</p>
+  </div>
+
+  <div class="scroll">
+  <table>
+    <thead><tr>
+      <th>Family</th><th>Signals</th><th>Read by</th><th>Top weight</th><th>What it is</th>
+    </tr></thead>
+    <tbody>
+<tr><td>CPU</td><td class="mono num">6</td><td class="mono">native</td><td class="mono num">1.0</td><td class="st">/proc/cpuinfo core tuples, ISA features, per-cluster max frequency</td></tr>
+<tr><td>Sensors</td><td class="mono num">3</td><td class="mono">framework</td><td class="mono num">1.0</td><td class="st">inventory, type set and count from SensorManager</td></tr>
+<tr><td>Cameras</td><td class="mono num">2</td><td class="mono">framework</td><td class="mono num">1.0</td><td class="st">per-camera geometry and capability inventory</td></tr>
+<tr><td>GPU</td><td class="mono num">6</td><td class="mono">framework</td><td class="mono num">1.0</td><td class="st">GL renderer, vendor, version, extension set and limits</td></tr>
+<tr><td>Display</td><td class="mono num">6</td><td class="mono">framework</td><td class="mono num">0.8</td><td class="st">resolution, densities, refresh-rate modes, HDR types</td></tr>
+<tr><td>Memory</td><td class="mono num">2</td><td class="mono">native</td><td class="mono num">0.7</td><td class="st">MemTotal, bucketed at two resolutions</td></tr>
+<tr><td>Storage</td><td class="mono num">1</td><td class="mono">native</td><td class="mono num">0.5</td><td class="st">statvfs on /data, bucketed to marketing capacity</td></tr>
+<tr><td>Input</td><td class="mono num">1</td><td class="mono">native</td><td class="mono num">0.8</td><td class="st">input device inventory</td></tr>
+<tr><td>Kernel</td><td class="mono num">3</td><td class="mono">native</td><td class="mono num">0.7</td><td class="st">uname release, machine, toolchain build number</td></tr>
+<tr><td>Build</td><td class="mono num">21</td><td class="mono">framework</td><td class="mono num">1.0</td><td class="st">android.os.Build fields and version block</td></tr>
+<tr><td>Properties</td><td class="mono num">35</td><td class="mono">native</td><td class="mono num">0.8</td><td class="st">curated ro.* set, read past the 92-byte truncation limit</td></tr>
+<tr><td>Codecs</td><td class="mono num">4</td><td class="mono">framework</td><td class="mono num">0.9</td><td class="st">hardware and software codec inventory, AVC profiles</td></tr>
+<tr><td>DRM</td><td class="mono num">3</td><td class="mono">framework</td><td class="mono num">0.6</td><td class="st">Widevine version, security level, HDCP level</td></tr>
+<tr><td>Config</td><td class="mono num">8</td><td class="mono">framework</td><td class="mono num">0.5</td><td class="st">locales, timezone, IME, SIM operator, 24-hour clock</td></tr>
+<tr><td>Identifiers</td><td class="mono num">3</td><td class="mono">framework</td><td class="mono num">1.0</td><td class="st">ANDROID_ID, MediaDrm id, per-install id</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="caption">104 identity signals on the reference handset, 122&ndash;137 present
+  per device depending on hardware and configuration. Weight is the contribution to a
+  fingerprint match, 0.1 to 1.0. &ldquo;Read by&rdquo; is the layer that reaches the
+  value: native goes to <code>/proc</code>, <code>/sys</code>, <code>statvfs</code> and
+  the property store through raw syscalls; framework goes through binder services.</p>
+
+  <h3>Four vectors, by how long each survives</h3>
+  <div class="prose">
+    <p>Signals carry a stability class, and the vectors are cumulative slices of it. This
+    is what lets a backend choose recall over precision or the reverse, per decision.</p>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Vector</th><th>Contents</th><th>Survives</th><th>Breaks on</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">v0</td><td>IMMUTABLE only</td>
+          <td class="st">factory reset, OS upgrade</td>
+          <td class="st">hardware change</td></tr>
+      <tr><td class="mono">v1</td><td>+ STABLE</td>
+          <td class="st">reinstall, data wipe</td>
+          <td class="st">OS upgrade, vendor OTA</td></tr>
+      <tr><td class="mono">v2</td><td>+ VOLATILE</td>
+          <td class="st">nothing much &mdash; highest entropy</td>
+          <td class="st">user setting changes</td></tr>
+      <tr><td class="mono">v3</td><td>ANCHOR only</td>
+          <td class="st">used as an exact-match join key</td>
+          <td class="st">identifier reset</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="caption">The gating checks in this report are built on v0&ndash;v2:
+  <code>repeat_stable</code> requires them identical across two collections in one run,
+  and <code>baseline</code> requires them identical to a vector stored on an earlier
+  launch.</p>
+
+  <h3>Integrity evidence, kept out of identity</h3>
+  <div class="prose">
+    <p>Twenty-three further signals carry tamper and attestation evidence at weight 0.0,
+    so they never enter a vector: key attestation chain and security level, verified-boot
+    and bootloader lock state, <code>ro.debuggable</code> and <code>ro.secure</code>, adb
+    and developer-settings state, accessibility services, the native tamper bitmask, and
+    the cross-layer checks. Keeping them at zero weight is what allowed the checks added
+    during this campaign to ship without invalidating a single stored baseline.</p>
+  </div>
+
+  <h3>Deliberately not collected</h3>
+  <div class="prose">
+    <p>No IMEI, MEID, serial number or MAC address, and no property that carries one.
+    Those are restricted identifiers under Google Play's user-data policy and are
+    unreadable to a third-party app from api29 anyway; collecting them would create a
+    compliance liability for no signal. The one exception in spirit is a reboot-scoped
+    boot-id hash, which is a nonce rather than an identifier and exists to tell a genuine
+    reboot apart from a snapshot-restored emulator replaying a session.</p>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Fleet</span>
+  <h2>Per-handset result, run r21</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr>
+      <th>api</th><th>Model</th><th>Vendor</th><th>abi</th><th>flags</th>
+      <th>conf</th><th>signals</th><th>Reading</th>
+    </tr></thead>
+    <tbody>
+<tr class="r-pass"><td class="mono">27</td><td>Moto G (5S) Plus</td><td class="dim">motorola</td><td class="mono">v7a</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">122/130</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">29</td><td>LM-V409N</td><td class="dim">LGE</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">128/134</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-watch"><td class="mono">29</td><td>SM-G781N</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0200</td><td class="mono num">0.55</td><td class="mono">131/137</td><td class="st"><span class="dot d-watch"></span>unlocked bootloader (reported correctly)</td></tr>
+<tr class="r-pass"><td class="mono">29</td><td>SM-G960N</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">126/134</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-watch"><td class="mono">30</td><td>M2101K6G</td><td class="dim">Xiaomi</td><td class="mono">a64</td><td class="mono">0x0200</td><td class="mono num">0.55</td><td class="mono">128/134</td><td class="st"><span class="dot d-watch"></span>unlocked bootloader (reported correctly)</td></tr>
+<tr class="r-pass"><td class="mono">30</td><td>SM-A305N</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">129/136</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">30</td><td>SM-M325FV</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">131/138</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">31</td><td>2201123G</td><td class="dim">Xiaomi</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">131/139</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">31</td><td>SM-A125N</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">134/142</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">31</td><td>SM-A315N</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">136/142</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">31</td><td>V2027</td><td class="dim">vivo</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">131/138</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-watch"><td class="mono">33</td><td>Pixel 4a (5G)</td><td class="dim">Google</td><td class="mono">a64</td><td class="mono">0x0200</td><td class="mono num">0.55</td><td class="mono">132/138</td><td class="st"><span class="dot d-watch"></span>unlocked bootloader (reported correctly)</td></tr>
+<tr class="r-pass"><td class="mono">33</td><td>RMX3771</td><td class="dim">realme</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">132/138</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-flag"><td class="mono">33</td><td>SM-S908E</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x2100</td><td class="mono num">0.07</td><td class="mono">123/131</td><td class="st"><span class="dot d-flag"></span>property set incoherent + software attestation</td></tr>
+<tr class="r-pass"><td class="mono">34</td><td>SM-A135N</td><td class="dim">samsung</td><td class="mono">v7a</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">132/140</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">34</td><td>SM-A156L</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">132/141</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">34</td><td>SM-A256N</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">130/138</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">34</td><td>SM-A826S</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">137/143</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">34</td><td>SM-M236L</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">134/141</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-watch"><td class="mono">34</td><td>SM-S911N</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0200</td><td class="mono num">0.55</td><td class="mono">133/141</td><td class="st"><span class="dot d-watch"></span>unlocked bootloader (reported correctly)</td></tr>
+<tr class="r-pass"><td class="mono">35</td><td>23021RAA2Y</td><td class="dim">Xiaomi</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">128/138</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">35</td><td>23124RA7EO</td><td class="dim">Xiaomi</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">128/138</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">35</td><td>2409BRN2CL</td><td class="dim">Xiaomi</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">125/134</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">35</td><td>2409FPCC4G</td><td class="dim">Xiaomi</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">130/138</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">35</td><td>A015</td><td class="dim">Nothing</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">127/136</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">35</td><td>CPH2609</td><td class="dim">OnePlus</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">132/138</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">35</td><td>CRT-NX1</td><td class="dim">HONOR</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">127/134</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">35</td><td>SM-A165N</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">132/141</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">35</td><td>SM-F721N</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">132/141</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-watch"><td class="mono">36</td><td>Pixel 6</td><td class="dim">Google</td><td class="mono">a64</td><td class="mono">0x0200</td><td class="mono num">0.55</td><td class="mono">129/137</td><td class="st"><span class="dot d-watch"></span>unlocked bootloader (reported correctly)</td></tr>
+<tr class="r-pass"><td class="mono">36</td><td>Pixel 7</td><td class="dim">Google</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">129/137</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">36</td><td>Pixel 9a</td><td class="dim">Google</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">128/137</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-pass"><td class="mono">36</td><td>SM-F766N</td><td class="dim">samsung</td><td class="mono">a64</td><td class="mono">0x0000</td><td class="mono num">1.0</td><td class="mono">128/137</td><td class="st"><span class="dot d-pass"></span>clean</td></tr>
+<tr class="r-watch"><td class="mono">37</td><td>Pixel 8</td><td class="dim">Google</td><td class="mono">a64</td><td class="mono">0x0200</td><td class="mono num">0.55</td><td class="mono">128/137</td><td class="st"><span class="dot d-watch"></span>unlocked bootloader (reported correctly)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="caption">Flags are the integrity bitmask: <code>0x0200</code> is
+  <code>verified_boot_not_green</code>, and <code>0x2100</code> combines an incoherent
+  property set with software-only attestation. Confidence is a multiplier the backend
+  applies to how much weight a fingerprint match carries, not a block or allow
+  decision.</p>
+</section>
+
+
+<section>
+  <span class="eyebrow">Integrate</span>
+  <h2>Using it from another app</h2>
+  <div class="prose">
+    <p>The library is packaged as an AAR carrying the collectors, the canonicaliser, the
+    vectors, the integrity verdict and <code>libdevicefp.so</code> for all four ABIs. The
+    harness wrapper &mdash; the plugin entry point and the on-device screen &mdash; is a
+    separate module and is not part of it. Nothing in the library knows a harness
+    exists.</p>
+  </div>
+
+  <ol class="steps">
+    <li>
+      <h3>Depend on it</h3>
+      <p class="note">No permissions are declared and no manifest entries are needed.
+      ProGuard rules travel inside the AAR, so a shrinking build keeps the JNI binding
+      and the public types without you adding anything. Minimum
+      <code>minSdk&nbsp;26</code>.</p>
+<pre><span class="c">// build.gradle.kts</span>
+implementation("com.doverunner.appsealing:devicefp:1.0.0")</pre>
+    </li>
+
+    <li>
+      <h3>Collect</h3>
+      <p class="note">One call, off the main thread. The native core loads itself on
+      first use, so there is nothing to initialise and no lifecycle to manage.</p>
+<pre><span class="c">// Kotlin — @WorkerThread</span>
+val report = DeviceFingerprint.collect(context)
+
+report.vector(Vector.V0_SILICON)   <span class="c">// hardware-bound, survives factory reset</span>
+report.vector(Vector.V1_PLATFORM)  <span class="c">// the primary vector</span>
+report.integrity.confidence        <span class="c">// 0.0–1.0 multiplier</span>
+report.integrity.reasons           <span class="c">// e.g. [attestation_software_only]</span>
+report.toJson()                    <span class="c">// digests only; pass true for raw values</span></pre>
+<pre><span class="c">// Java — @JvmStatic and @JvmOverloads are already on the entry points</span>
+FingerprintReport report = DeviceFingerprint.collect(context);
+String v1 = report.vector(Vector.V1_PLATFORM);</pre>
+      <p class="note" style="margin:8px 0 0">With no worker pool of your own,
+      <code>collectAsync(context, callback)</code> runs it on a single-use executor and
+      hands the report back.</p>
+    </li>
+
+    <li>
+      <h3>Pass a server nonce for attestation</h3>
+      <p class="note">The one setting that matters for security. Without a server-issued
+      challenge the attestation chain is replayable: an attacker captures a chain from a
+      clean device and presents it from a rooted one. Attestation is the only signal in
+      the report rooted in a key the device does not hold, which is what makes it worth
+      having &mdash; it is the signal that caught the spoofed handset above.</p>
+<pre>val report = DeviceFingerprint.collect(
+    context,
+    DeviceFingerprint.Config(
+        attestationChallenge = nonceFromYourServer,  <span class="c">// always, in production</span>
+        enableGpu = true,          <span class="c">// offscreen GL probe, ~100–400 ms</span>
+        enableDrmId = true,        <span class="c">// Widevine id, strongest resettable anchor</span>
+        enableGsfId = false,       <span class="c">// needs READ_GSERVICES in YOUR manifest</span>
+        globalTimeoutMs = 3_000L,  <span class="c">// hard ceiling on the whole collection</span>
+    ),
+)</pre>
+    </li>
+
+    <li>
+      <h3>Judge on the server, not on the device</h3>
+      <p class="note" style="margin:0">Send the report and decide there. Everything a
+      device says about itself can be rewritten by whoever controls it; what a backend can
+      do that a client cannot is compare this report against other reports. Treat
+      <code>confidence</code> as a weight on how much a fingerprint match counts, never as
+      a block-or-allow verdict &mdash; a rooted developer handset is not a fraudster, while
+      a rooted handset whose v0 matches eleven other accounts is.</p>
+    </li>
+  </ol>
+
+  <h3>What to expect on a real device</h3>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Property</th><th>Measured across this fleet</th></tr></thead>
+    <tbody>
+      <tr><td>Collection time</td><td class="st">168&ndash;1775&nbsp;ms, median 455. Collectors run in parallel under one deadline and a slow one is dropped rather than allowed to starve the rest</td></tr>
+      <tr><td>Signals returned</td><td class="st">122&ndash;137 of the declared set, varying with hardware and configuration</td></tr>
+      <tr><td>Permissions required</td><td class="st">none, unless you opt into the GSF id</td></tr>
+      <tr><td>Repeatability</td><td class="st">v0&ndash;v2 identical across back-to-back collections and across app restarts, on 34 of 34 handsets</td></tr>
+      <tr><td>Without the native core</td><td class="st">still a valid report, and it says so: <code>NATIVE_UNAVAILABLE</code> is raised, confidence is capped at 0.5, and roughly a third of the signals are absent</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="caption">A signal that cannot be read is reported as absent rather than
+  dropped, so a blocked path never reads as a clean result. Absence is itself weakly
+  identifying.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Integrate</span>
+  <h2>Using the native core on its own</h2>
+  <div class="prose">
+    <p>The same <code>libdevicefp.so</code> exposes a plain-C surface with no JNI and no
+    JVM requirement, for an NDK app or another native library that wants the
+    kernel-sourced signals without going through Kotlin. This is the surface the harness
+    uses, which is why it exists: the harness opens the library with <code>dlopen</code>
+    so it can close it again, and a caller with no JVM at all can use exactly the same
+    four functions.</p>
+    <p><strong>Know what you give up.</strong> Canonicalisation, the v0&ndash;v3 vectors
+    and the integrity verdict all live in the Kotlin layer. The native surface hands back
+    raw key/value pairs and a bitmask; it does not compute a fingerprint. Everything
+    framework-sourced &mdash; sensors, cameras, codecs, GL strings, DRM, Settings, key
+    attestation &mdash; is not in this surface at all.</p>
+  </div>
+
+<pre><span class="c">// Four exported symbols. Everything else is hidden (-fvisibility=hidden).</span>
+const char *df_collect(const char *);       <span class="c">// key  value  key  value …</span>
+int         df_tamper_flags(const char *);  <span class="c">// DF_TAMPER_* bitmask</span>
+const char *df_sha256(const char *);        <span class="c">// 64 hex chars, or null</span>
+void        harness_native_free(const char *);
+
+<span class="c">// Optional. Hands over the process JavaVM so the library can read the few</span>
+<span class="c">// framework values it reads through JNI. Skip it and those are simply absent.</span>
+void        harness_native_set_vm(void *javaVM);</pre>
+
+<pre><span class="c">// dlopen, call, free. Every text return is owned by the caller.</span>
+void *h = dlopen("libdevicefp.so", RTLD_NOW | RTLD_LOCAL);
+auto collect = (const char *(*)(const char *))     dlsym(h, "df_collect");
+auto release = (void (*)(const char *))            dlsym(h, "harness_native_free");
+auto flags   = (int (*)(const char *))             dlsym(h, "df_tamper_flags");
+
+const char *flat = collect(nullptr);
+<span class="c">// Split on : even fields are keys, odd fields are values.</span>
+int tamper = flags(nullptr);
+release(flat);          <span class="c">// required — the library allocated it</span>
+dlclose(h);</pre>
+
+  <p class="note">Linking it directly instead of <code>dlopen</code> works too and is
+  simpler; <code>dlopen</code> is only needed if you want to be able to close it again.
+  <code>harness_native_free</code> is not optional: the library allocates with its own
+  statically linked libc++, so it has to be the one that frees.</p>
+
+  <h3>What the native surface alone returns</h3>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Available without a JVM</th><th>Needs the Kotlin layer</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="st">Curated <code>ro.*</code> properties, read past the 92-byte truncation limit</td>
+        <td class="st">v0&ndash;v3 vectors and canonicalisation</td>
+      </tr>
+      <tr>
+        <td class="st">/proc/cpuinfo core tuples, ISA features, per-cluster max frequency</td>
+        <td class="st">The integrity verdict and <code>confidence</code></td>
+      </tr>
+      <tr>
+        <td class="st">MemTotal, statvfs on /data, uname, boot-id nonce</td>
+        <td class="st">Sensors, cameras, codecs, GL strings, DRM</td>
+      </tr>
+      <tr>
+        <td class="st">/proc/self/maps scan and the libc prologue probe, as a tamper bitmask</td>
+        <td class="st">Hardware key attestation &mdash; no NDK API exists for it</td>
+      </tr>
+      <tr>
+        <td class="st">Panel geometry from sysfs, where the platform allows it</td>
+        <td class="st">Locales, timezone, IME, SIM operator, ANDROID_ID</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="caption">The framework values the native side does read &mdash;
+  <code>android.os.Build</code> through JNI &mdash; need a JavaVM. Hand one over with
+  <code>harness_native_set_vm</code>, or on api31 and above the library finds it itself
+  through <code>libnativehelper.so</code>. Below api31 there is no self-service route, so
+  without the handover those values are absent.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Verified</span>
+  <h2>What the rounds establish</h2>
+  <div class="prose">
+    <h3>Stability across app restarts</h3>
+    <p>Each logic push restarts the client, so rounds r20 and r21 compared every handset's
+    vectors against a baseline stored before that restart. All 34 matched, twice. Within a
+    run, the two collections of every handset were identical.</p>
+
+    <h3>No version-specific collector gap</h3>
+    <p>All eight collectors reported on all 34 handsets, and api29 collects one signal
+    <em>more</em> than api34. Absences track device configuration &mdash; SIM, proxy,
+    accessibility services &mdash; not platform version.</p>
+
+    <h3>Both shipping ABIs exercised</h3>
+    <p>arm64-v8a on 32 handsets and armeabi-v7a on two, including the 32-bit branch of the
+    new per-ABI syscall code.</p>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow open">Open</span>
+  <h2>Limits of this report</h2>
+
+  <div class="rec op">
+    <h3>x86 and x86_64 were compiled but never run</h3>
+    <p>No such handset is in the fleet, so the x86 branch of the new <code>pread</code>
+    wrapper is compile-verified only.</p>
+  </div>
+
+  <div class="rec op">
+    <h3>The coherence rules rest on a single positive case</h3>
+    <p>One spoofed handset. Both rules are structural rather than fitted to it, and both
+    are trivially defeated by adding the two properties they check for.</p>
+  </div>
+
+  <div class="rec op">
+    <h3>Two dual-read stages detect nothing</h3>
+    <p>Reading <code>Build.*</code> a second time through JNI resolves the same static
+    fields, so it is one reading rather than two. Reading panel geometry from sysfs is
+    genuinely independent but blocked by SELinux on 33 of 34 handsets. Both are correct
+    code that earns nothing; whether to remove them is a decision still to take.</p>
+  </div>
+
+  <div class="rec op">
+    <h3>One handset went intermittently unstable after the library split</h3>
+    <p>Splitting the collection logic into a publishable module changed no collection code
+    &mdash; the files were moved, and every handset still matches the fingerprint it stored
+    before the split, which is the check that matters for packaging. But SM-G960N has since
+    failed <code>repeat_stable</code> in two rounds of three, where it passed four for four
+    before.</p>
+    <p>What is ruled out: no collector was dropped (all eight report), the signal set and
+    the absent set are identical between passing and failing rounds, and at 310/313&nbsp;ms
+    against a 3000&nbsp;ms budget there is no deadline pressure &mdash; the slowest handset
+    in the fleet takes 1887&nbsp;ms and passes. The first collection is always correct; the
+    second drifts. So a present signal is changing value between two back-to-back reads on
+    this one device.</p>
+    <p>Whether the split caused it or surfaced existing flakiness is not yet established,
+    and four passing rounds against two failing is too little to call. Pinning it needs the
+    check to report <em>which</em> comparable key moved; today it reports only that one did,
+    which is the same gap that made the layer-agreement signal hard to action until it was
+    given values to show.</p>
+  </div>
+
+  <div class="rec op">
+    <h3>Harness tooling issues, outside the suite</h3>
+    <p>A runtime push is consumed but never applied, leaving clients on the seeded
+    runtime. The deploy script grants a notification permission before launching, which
+    fails below api33 and takes the launch with it. A suite's native library is not
+    carried in the APK seed, so a freshly installed handset needs an explicit push before
+    its numbers mean anything.</p>
+  </div>
+</section>
+
+<footer>
+  <p>Chronological record, including the rules rejected during design and the measurements
+  that rejected them: <code>docs/DEVICEFP-CROSS-VERSION-VALIDATION.md</code>. Stored
+  envelopes: <code>tools/collector/reports/</code>, 438 reports.</p>
+</footer>
+</div>
+</body>
+</html>
