@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MeetZone Privacy Policy · 밋존 개인정보처리방침</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic",sans-serif;max-width:760px;margin:0 auto;padding:24px;line-height:1.7;color:#1B1B21;background:#FBF8FF}
+h1{font-size:1.5rem;color:#14228F}
+h2{font-size:1.1rem;margin-top:1.6em;color:#2C3A9F}
+.toggle{position:sticky;top:12px;float:right;background:#DEE0FF;border:none;border-radius:10px;padding:10px 18px;font-size:.95rem;cursor:pointer;color:#00105C}
+footer{margin-top:2.5em;font-size:.85rem;color:#46464F}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<button class="toggle" id="toggle" onclick="swap()">EN</button>
+
+<div id="ko">
+<h1>밋존(MeetZone) 개인정보처리방침</h1>
+<p>시행일 2026-08-31 · 앱 패키지 com.purehero.meetzone</p>
+<h2>1. 개요</h2>
+<p>밋존은 시간대 비교와 회의 시간 조율을 돕는 도구 앱입니다. 앱은 회원가입이나 계정을 요구하지 않으며, 개발자는 이용자를 식별할 수 있는 개인정보를 수집하는 서버를 운영하지 않습니다.</p>
+<h2>2. 기기에만 저장되는 정보</h2>
+<p>이용자가 추가한 도시 목록, 기준 도시, 업무시간·테마·시간 형식 설정은 이용자의 기기 내부 저장소에만 저장됩니다. 이 정보는 외부 서버로 전송되지 않습니다. 앱의 저장공간을 지우거나 앱을 삭제하면 즉시 모두 삭제됩니다.</p>
+<h2>3. 시간대 기능과 네트워크</h2>
+<p>시간대 변환·비교·요약·추천 슬롯 등 핵심 기능은 기기에 내장된 시간대 데이터로 동작하며 네트워크 연결을 필요로 하지 않습니다.</p>
+<h2>4. 광고와 광고 식별자</h2>
+<p>앱은 Google AdMob 광고(하단 배너)를 표시합니다. 광고 표시는 네트워크를 사용하며, 광고 SDK는 광고 게재·측정 목적으로 광고 식별자(Advertising ID) 등 기기 정보를 수집·처리하고 광고 목적상 Google과 공유할 수 있습니다. 자세한 내용은 <a href="https://policies.google.com/privacy">Google 개인정보처리방침</a>을 참고하시기 바랍니다. 기기 설정의 "광고 초기화/삭제"로 광고 식별자를 재설정하거나 삭제할 수 있습니다.</p>
+<h2>5. 권한</h2>
+<p>앱이 요청하는 권한은 인터넷 접근(광고 표시용)뿐이며, 위치·연락처·카메라·저장소 등 위험 권한은 요청하지 않습니다.</p>
+<h2>6. 아동</h2>
+<p>앱은 아동을 대상으로 하지 않으며 연령 확인 정보를 수집하지 않습니다.</p>
+<h2>7. 문의</h2>
+<p>개인정보 관련 문의는 <a href="mailto:purehero@gmail.com">purehero@gmail.com</a> 으로 연락해 주시기 바랍니다.</p>
+<h2>8. 변경</h2>
+<p>방침이 변경되면 이 페이지에 갱신하여 게시합니다.</p>
+</div>
+
+<div id="en" hidden>
+<h1>MeetZone Privacy Policy</h1>
+<p>Effective 2026-08-31 · Package com.purehero.meetzone</p>
+<h2>1. Overview</h2>
+<p>MeetZone is a utility app for comparing time zones and coordinating meeting times. The app requires no sign-up or account, and the developer operates no server that collects personally identifiable information.</p>
+<h2>2. Data stored only on your device</h2>
+<p>Your city list, base city, and office-hours/theme/time-format settings are stored only in your device's internal storage. They are never transmitted to any external server. Clearing the app's storage or uninstalling the app deletes them all immediately.</p>
+<h2>3. Timezone features and the network</h2>
+<p>Core features — timezone conversion, comparison, summaries, and overlap-slot suggestions — run on the timezone data built into your device and require no network connection.</p>
+<h2>4. Ads and the advertising identifier</h2>
+<p>The app shows Google AdMob ads (a single bottom banner). Ad serving uses the network, and the ads SDK may collect and process device information including the Advertising ID for ad delivery and measurement, and may share it with Google for advertising purposes. See the <a href="https://policies.google.com/privacy">Google Privacy Policy</a> for details. You can reset or delete your Advertising ID in your device settings.</p>
+<h2>5. Permissions</h2>
+<p>The only permission the app requests is Internet access (for ads). It requests no dangerous permissions such as location, contacts, camera, or storage.</p>
+<h2>6. Children</h2>
+<p>The app is not directed at children and collects no age-verification information.</p>
+<h2>7. Contact</h2>
+<p>For privacy inquiries, contact <a href="mailto:purehero@gmail.com">purehero@gmail.com</a>.</p>
+<h2>8. Changes</h2>
+<p>Any changes to this policy will be posted on this page.</p>
+</div>
+
+<footer>MeetZone · com.purehero.meetzone · purehero@gmail.com</footer>
+
+<script>
+function show(lang){
+  document.getElementById('ko').hidden = lang !== 'ko';
+  document.getElementById('en').hidden = lang !== 'en';
+  document.getElementById('toggle').textContent = lang === 'ko' ? 'EN' : '한국어';
+  document.documentElement.lang = lang;
+}
+function swap(){
+  show(document.getElementById('ko').hidden ? 'ko' : 'en');
+}
+(function(){
+  var langs = navigator.languages || [navigator.language || 'en'];
+  show((langs[0] || 'en').toLowerCase().indexOf('ko') === 0 ? 'ko' : 'en');
+})();
+</script>
+</body>
+</html>
