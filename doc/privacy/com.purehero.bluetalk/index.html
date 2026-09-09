@@ -49,12 +49,12 @@
   <!-- 한국어 버전 -->
   <main data-lang="ko">
     <h1>BlueTalk 개인정보처리방침</h1>
-    <p class="updated">최종 업데이트: 2026-06-25</p>
+    <p class="updated">최종 업데이트: 2026-09-09</p>
 
     <p class="note">BlueTalk(패키지 <code>com.purehero.bluetalk</code>, 이하 "앱")는 서버 없이 두 기기를 블루투스 또는 같은 Wi-Fi(LAN)로 직접 연결하는 오프라인·프라이버시 우선 P2P 메신저입니다.</p>
 
     <h2>1. 핵심 요약</h2>
-    <p>개발자는 <strong>어떤 서버도 운영하지 않으며</strong>, 사용자의 개인정보를 수집·저장·전송하지 않습니다. 대화·음성·사진·파일·통화는 <strong>두 기기 사이에서만</strong> 직접 오갑니다. 계정 가입이 필요 없고, 광고·분석·추적 SDK를 포함하지 않습니다.</p>
+    <p>개발자는 <strong>어떤 서버도 운영하지 않으며</strong>, 사용자의 개인정보를 직접 수집·저장하지 않습니다. 대화·음성·사진·파일·통화는 <strong>두 기기 사이에서만</strong> 직접 오갑니다. 계정 가입이 필요 없고 분석·추적 SDK도 포함하지 않습니다. 다만 앱 안에 <strong>배너 광고(Google AdMob)</strong>가 포함되어 있으며, 광고 제공 과정에서 Google이 광고 ID 등 일부 기기 정보를 수집할 수 있습니다(아래 5항). <strong>대화 내용은 광고에 사용되지 않습니다.</strong></p>
 
     <h2>2. 기기에만 저장하는 정보 (외부 전송 없음)</h2>
     <ul>
@@ -76,7 +76,18 @@
     <h2>4. 온디바이스 AI (프로필 사진 변환)</h2>
     <p>프로필 사진을 애니메이션 캐릭터풍으로 바꾸는 기능은 <strong>전적으로 기기 내부에서</strong> 처리됩니다(온디바이스 AI, ONNX Runtime). 사진은 당사 서버를 포함한 어떤 외부로도 전송되지 않습니다.</p>
 
-    <h2>5. 권한 사용 목적</h2>
+    <h2>5. 광고 (Google AdMob)</h2>
+    <p>앱의 연결 화면 하단에 배너 광고가 표시됩니다. 광고는 Google AdMob이 제공합니다.</p>
+    <ul>
+      <li>광고를 불러오고 측정하는 과정에서 Google은 <strong>광고 ID(AAID), 기기 정보, IP 주소(및 그로부터 추정되는 대략적 위치)</strong>를 수집·이용할 수 있습니다. 이 처리에 대해서는 Google이 독립적인 개인정보 처리자로서 책임을 집니다. 자세한 내용은 <a href="https://policies.google.com/technologies/ads">Google 광고 데이터 처리 안내</a>를 참고하세요.</li>
+      <li><strong>대화 내용·연락처·사진·파일·통화 등 앱이 다루는 데이터는 광고 목적으로 사용되거나 전송되지 않습니다.</strong> 광고 SDK는 해당 데이터에 접근하지 않습니다.</li>
+      <li>광고는 인터넷에 연결되어 있을 때만 요청합니다. 통화가 끝난 뒤 보여줄 배너를 통화 중에 미리 받아둘 수 있지만, <strong>통화 중에는 광고가 표시되지 않습니다.</strong></li>
+      <li>EEA·영국 등 규제 지역에서는 광고를 요청하기 전에 Google UMP(User Messaging Platform) 동의 화면을 통해 동의를 받으며, 동의 전에는 광고를 요청하지 않습니다.</li>
+      <li>동의는 언제든 앱 내 <strong>설정 &gt; 광고 개인정보 설정</strong>에서 다시 선택할 수 있습니다. 동의를 철회하면 개인화 광고가 중단됩니다.</li>
+      <li>광고 ID는 안드로이드 <strong>설정 &gt; 개인정보 보호 &gt; 광고</strong>에서 재설정하거나 삭제할 수 있습니다.</li>
+    </ul>
+
+    <h2>6. 권한 사용 목적</h2>
     <ul>
       <li>블루투스 / 근처 기기: 주변 기기를 검색하고 연결하기 위해 사용합니다.</li>
       <li>위치(정밀): 일부 안드로이드 버전·기기는 블루투스 검색에 위치 권한을 요구합니다. 블루투스 검색 목적에만 쓰이며 위치 정보를 수집·저장·전송하지 않습니다.</li>
@@ -86,44 +97,44 @@
       <li>포그라운드 서비스: 통화·연결을 백그라운드에서 유지하기 위해 사용합니다.</li>
     </ul>
 
-    <h2>6. 데이터 보관 및 삭제</h2>
+    <h2>7. 데이터 보관 및 삭제</h2>
     <ul>
       <li>모든 데이터는 기기 내 앱 전용 저장소에만 보관됩니다.</li>
       <li>앱 내에서 대화·항목을 삭제하거나 앱을 제거하면 관련 데이터가 함께 삭제됩니다.</li>
       <li>당사는 서버를 운영하지 않으므로 별도의 삭제 요청 절차가 필요하지 않습니다.</li>
     </ul>
 
-    <h2>7. 하지 않는 것</h2>
-    <p>계정·로그인 없음. 서버·클라우드 없음. 광고 SDK·분석 SDK·추적 도구 없음. 데이터 판매 없음.</p>
+    <h2>8. 하지 않는 것</h2>
+    <p>계정·로그인 없음. 서버·클라우드 없음. 분석 SDK·추적 도구 없음. 데이터 판매 없음. 대화·연락처·파일을 광고에 이용하는 일 없음.</p>
 
-    <h2>8. 제3자 제공</h2>
-    <p>앱은 사용자 데이터를 제3자에게 제공하지 않습니다. 당사가 수집하는 데이터 자체가 없습니다.</p>
+    <h2>9. 제3자 제공</h2>
+    <p>당사는 사용자 데이터를 수집하지 않으므로 제3자에게 판매하거나 제공하지 않습니다. 다만 광고 표시를 위해 Google AdMob이 위 5항에 적힌 범위의 정보를 직접 수집·처리합니다.</p>
 
-    <h2>9. 아동 개인정보(Families)</h2>
-    <p>본 앱은 개인정보를 수집하지 않으며, 만 14세(한국) / 만 13세(미국 COPPA) 미만 아동의 개인정보를 의도적으로 수집하지 않습니다.</p>
+    <h2>10. 아동 개인정보(Families)</h2>
+    <p>본 앱은 아동을 주 대상으로 하지 않으며(Play 가족 프로그램 대상 아님), 만 14세(한국) / 만 13세(미국 COPPA) 미만 아동의 개인정보를 의도적으로 수집하지 않습니다.</p>
 
-    <h2>10. 국가별 권리</h2>
+    <h2>11. 국가별 권리</h2>
     <ul>
       <li>한국(PIPA): 정보주체는 자신의 개인정보 열람·정정·삭제·처리정지를 요구할 수 있습니다. 단, 앱은 개인정보를 수집·보관하지 않으므로 모든 데이터는 사용자 기기 내에 있으며 사용자가 직접 관리·삭제합니다.</li>
       <li>EEA/영국(GDPR): 접근·정정·삭제·처리제한·이동권·이의제기 권리가 있습니다. 당사는 개인정보를 처리·보관하지 않습니다.</li>
     </ul>
 
-    <h2>11. 변경</h2>
+    <h2>12. 변경</h2>
     <p>본 방침이 변경되면 본 문서와 스토어 등록 정보를 통해 갱신하고 갱신일을 표기합니다.</p>
 
-    <h2>12. 문의처</h2>
+    <h2>13. 문의처</h2>
     <p>이메일: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
   </main>
 
   <!-- 영어 버전 -->
   <main data-lang="en" class="show">
     <h1>BlueTalk Privacy Policy</h1>
-    <p class="updated">Last updated: 2026-06-25</p>
+    <p class="updated">Last updated: 2026-09-09</p>
 
     <p class="note">BlueTalk (package <code>com.purehero.bluetalk</code>, "the app") is an offline-first, privacy-first peer-to-peer messenger that connects two devices directly over Bluetooth or the same Wi-Fi (LAN), with no server in between.</p>
 
     <h2>1. Summary</h2>
-    <p>The developer <strong>operates no servers</strong> and does not collect, store, or transmit your personal data. Your chats, voice, photos, files, and calls travel <strong>only between the two devices</strong>. No account or sign-up is required, and no advertising, analytics, or tracking SDKs are included.</p>
+    <p>The developer <strong>operates no servers</strong> and does not collect or store your personal data. Your chats, voice, photos, files, and calls travel <strong>only between the two devices</strong>. No account or sign-up is required, and no analytics or tracking SDKs are included. The app does include a <strong>banner ad (Google AdMob)</strong>, and Google may collect some device information such as your advertising ID while serving it (see section 5). <strong>Your chats are never used for ads.</strong></p>
 
     <h2>2. What we store on your device (never uploaded)</h2>
     <ul>
@@ -145,7 +156,18 @@
     <h2>4. On-device AI (profile photo styling)</h2>
     <p>The feature that turns your profile photo into an anime-character style is processed <strong>entirely on your device</strong> (on-device AI, ONNX Runtime). Your photo is never uploaded anywhere, including our servers.</p>
 
-    <h2>5. Permissions</h2>
+    <h2>5. Ads (Google AdMob)</h2>
+    <p>A banner ad is shown at the bottom of the connect screen. Ads are served by Google AdMob.</p>
+    <ul>
+      <li>To request and measure ads, Google may collect and use your <strong>advertising ID (AAID), device information, and IP address (and an approximate location derived from it)</strong>. Google acts as an independent data controller for that processing; see <a href="https://policies.google.com/technologies/ads">how Google uses data for ads</a>.</li>
+      <li><strong>Nothing the app handles — chats, contacts, photos, files, or calls — is used for advertising or transmitted for it.</strong> The ad SDK has no access to that data.</li>
+      <li>Ads are requested only while the device has an internet connection. The banner shown after a call ends may be fetched during the call, but <strong>no ad is displayed while you are on a call.</strong></li>
+      <li>In the EEA, the UK, and other regulated regions, consent is collected through the Google UMP (User Messaging Platform) form before any ad is requested.</li>
+      <li>You can change your choice anytime in <strong>Settings &gt; Ad privacy settings</strong> in the app. Withdrawing consent stops personalised ads.</li>
+      <li>You can reset or delete your advertising ID in Android <strong>Settings &gt; Privacy &gt; Ads</strong>.</li>
+    </ul>
+
+    <h2>6. Permissions</h2>
     <ul>
       <li>Bluetooth / Nearby devices: to discover and connect to nearby devices.</li>
       <li>Location (precise): some Android versions/devices require location permission for Bluetooth scanning. It is used only for Bluetooth discovery; no location data is collected, stored, or transmitted.</li>
@@ -155,32 +177,32 @@
       <li>Foreground service: to keep a call/connection alive in the background.</li>
     </ul>
 
-    <h2>6. Data retention and deletion</h2>
+    <h2>7. Data retention and deletion</h2>
     <ul>
       <li>All data stays in app-private storage on your device.</li>
       <li>Deleting chats/items in the app, or uninstalling the app, removes the related data.</li>
       <li>We run no servers, so no separate deletion-request process is needed.</li>
     </ul>
 
-    <h2>7. What we do NOT do</h2>
-    <p>No accounts, no login. No servers or cloud. No advertising SDKs, analytics SDKs, or tracking tools. We do not sell your data.</p>
+    <h2>8. What we do NOT do</h2>
+    <p>No accounts, no login. No servers or cloud. No analytics SDKs or tracking tools. We do not sell your data, and we never use your chats, contacts, or files for advertising.</p>
 
-    <h2>8. Third parties</h2>
-    <p>The app does not share user data with third parties. There is no collected data to share.</p>
+    <h2>9. Third parties</h2>
+    <p>We collect no user data, so we sell or share none with third parties. Google AdMob does directly collect and process the information described in section 5 in order to serve ads.</p>
 
-    <h2>9. Children (Families)</h2>
-    <p>The app collects no personal information and is not directed to children under 14 (Korea) / 13 (US COPPA); it does not knowingly collect children's personal information.</p>
+    <h2>10. Children (Families)</h2>
+    <p>The app is not directed to children (it is not part of the Play Families programme) and does not knowingly collect the personal information of children under 14 (Korea) / 13 (US COPPA).</p>
 
-    <h2>10. Your rights by region</h2>
+    <h2>11. Your rights by region</h2>
     <ul>
       <li>Korea (PIPA): you may request access, correction, deletion, or suspension of processing of your personal data. Because the app neither collects nor stores personal data, all data remains on your device under your own control.</li>
       <li>EEA/UK (GDPR): you have rights of access, rectification, erasure, restriction, portability, and objection. We do not process or store your personal data.</li>
     </ul>
 
-    <h2>11. Changes</h2>
+    <h2>12. Changes</h2>
     <p>We will update this policy and its date when our practices change.</p>
 
-    <h2>12. Contact</h2>
+    <h2>13. Contact</h2>
     <p>Email: <a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
   </main>
 
