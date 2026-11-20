@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>블록 브라보 개인정보처리방침</title>
+  <style>
+    :root {
+      color-scheme: light;
+      color: #21352b;
+      background: #f5f8f3;
+      font: 16px/1.75 system-ui, sans-serif;
+    }
+
+    body { margin: 0; }
+    main { max-width: 720px; padding: 2rem 1.25rem 4rem; margin: 0 auto; }
+    [hidden] { display: none !important; }
+    a { color: #225943; overflow-wrap: anywhere; text-underline-offset: .2em; }
+    a:focus-visible, button:focus-visible { outline: 2px solid #277151; outline-offset: 3px; }
+    code { overflow-wrap: anywhere; }
+    h1, h2 { line-height: 1.25; }
+    h1 { margin: 0 0 .75rem; font-size: clamp(1.9rem, 6vw, 2.8rem); }
+    h2 { margin: 0 0 .65rem; font-size: 1.35rem; }
+    p { margin: .65rem 0; }
+
+    .language-picker { display: flex; justify-content: flex-end; gap: .4rem; margin-bottom: 1.5rem; }
+    .language-picker button {
+      min-height: 44px;
+      padding: .35rem .85rem;
+      border: 1px solid #8ca599;
+      border-radius: .5rem;
+      background: #fff;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+    .language-picker button[aria-pressed="true"] {
+      border-color: #245840;
+      background: #245840;
+      color: #fff;
+    }
+
+    .policy-header { padding-bottom: 1.5rem; }
+    .policy-header p { color: #41574b; }
+    .policy > section {
+      border-top: 1px solid #cddbd1;
+      padding: 1.35rem 0;
+    }
+    .policy > section > :last-child { margin-bottom: 0; }
+    .policy:not([hidden]) + .policy { margin-top: 3rem; }
+  </style>
+</head>
+<body>
+<main>
+  <nav class="language-picker" aria-label="언어 선택" hidden>
+    <button type="button" lang="ko" data-language="ko" aria-pressed="true">한국어</button>
+    <button type="button" lang="en" data-language="en" aria-pressed="false">English</button>
+  </nav>
+
+  <article class="policy" id="ko" lang="ko" aria-labelledby="title-ko">
+    <header class="policy-header">
+      <h1 id="title-ko">블록 브라보 개인정보처리방침</h1>
+      <p>이 방침은 Android 게임 블록 브라보(<code>com.purehero.blockbravo</code>)에 적용됩니다.</p>
+    </header>
+
+    <section>
+      <h2>기기에 저장하는 정보</h2>
+      <p>일반 게임은 로그인 없이 플레이할 수 있습니다. 게임 진행 상황, 최근 게임 결과, 설정, 기기용 닉네임과 캐릭터, 제출 대기 중인 순위전 기록은 기기에 저장됩니다.</p>
+      <p>처음으로 순위표 프로필을 만들 때 앱이 자동 생성한 닉네임을 공개 닉네임으로 사용할 수 있습니다. 직접 설정한 기기용 닉네임과 캐릭터는 기기에 보관합니다. 앱 데이터를 지우거나 앱을 삭제하면 기기에 저장된 기록이 삭제됩니다.</p>
+    </section>
+
+    <section>
+      <h2>Google 로그인과 순위표</h2>
+      <p>온라인 순위전에는 Google 로그인과 Firebase Authentication을 사용합니다. 로그인과 계정 확인 과정에서 Firebase 사용자 ID와 Google이 제공하는 이름, 이메일 주소 등 계정 정보가 처리될 수 있습니다.</p>
+      <p>순위와 점수를 관리하고 경기 결과를 검증하기 위해 사용자 ID, 닉네임, 캐릭터 선택, 점수, 경기·제출 시각과 블록 배치·회전·펄스 사용 내역을 처리합니다. 다른 이용자는 공개 닉네임, 선택한 캐릭터, 순위 및 점수를 볼 수 있습니다. Google 프로필 사진을 공개하기로 선택하면 순위표에 해당 이미지가 표시됩니다. 이메일 주소는 로그인에 사용되며 순위표에서는 비공개입니다.</p>
+      <p>순위전 데이터는 Cloud Functions for Firebase와 Cloud Firestore에서 처리합니다.</p>
+    </section>
+
+    <section>
+      <h2>보상형 광고</h2>
+      <p>일반 게임에서 광고를 보고 이어서 플레이할 수 있도록 Google AdMob을 사용합니다. 광고를 미리 준비하거나 표시할 때 Google Mobile Ads SDK는 광고 제공, 이용 분석 및 부정 사용 방지를 위해 IP 주소, 앱·광고 상호작용, 진단 정보와 기기·계정 식별자를 처리할 수 있습니다. 앱은 Android 광고 ID 권한을 요청하지 않습니다.</p>
+    </section>
+
+    <section>
+      <h2>보관 기간</h2>
+      <p>주간 순위 기록은 주차가 바뀐 뒤 예약 작업으로 삭제합니다. 순위전 경기 기록은 시작 24시간 후 만료되며, 만료 후 7일이 지나면 자동 정리 대상이 됩니다. 공개 프로필과 역대 최고 기록은 계정과 순위표 운영을 위해 보관합니다.</p>
+    </section>
+
+    <section>
+      <h2>정보 보호</h2>
+      <p>앱과 서버 사이의 요청은 HTTPS로 전송합니다. 순위표 조회와 점수 제출에는 인증이 필요하며, 제출한 점수는 서버에서 검증합니다. Google의 정보 처리 방식은 <a href="https://policies.google.com/technologies/partner-sites?hl=ko">Google 파트너 사이트 정책</a>에서 확인할 수 있습니다.</p>
+    </section>
+
+    <section>
+      <h2>개인정보 문의</h2>
+      <p>개인정보의 확인, 정정 또는 삭제에 관한 문의는 <a href="mailto:purehero@gmail.com">purehero@gmail.com</a>으로 보내 주세요.</p>
+    </section>
+  </article>
+
+  <article class="policy" id="en" lang="en" aria-labelledby="title-en">
+    <header class="policy-header">
+      <h1 id="title-en">Block Bravo Privacy Policy</h1>
+      <p>This policy applies to the Android game Block Bravo (<code>com.purehero.blockbravo</code>).</p>
+    </header>
+
+    <section>
+      <h2>Information stored on your device</h2>
+      <p>You can play casual games without signing in. The app stores your game progress, recent results, preferences, device nickname and character, and pending ranked submissions on your device.</p>
+      <p>When you create a leaderboard profile, the app may use its automatically generated nickname as your public name. The nickname and character you choose for your device stay on your device. Clearing app data or uninstalling the app removes these local records.</p>
+    </section>
+
+    <section>
+      <h2>Google sign-in and leaderboards</h2>
+      <p>Online ranked play uses Google sign-in and Firebase Authentication. Sign-in and account verification may process your Firebase user ID and account information provided by Google, such as your name and email address.</p>
+      <p>We process user IDs, nicknames, avatar choices, scores, game and submission times, and block placement, rotation and Pulse actions to operate ranked play and verify scores. Other players can see your public nickname, selected character, rank, and score. If you choose to share your Google profile photo, the leaderboard displays that photo. Your email address is used for sign-in and is private on the leaderboard.</p>
+      <p>Ranked data is processed through Cloud Functions for Firebase and Cloud Firestore.</p>
+    </section>
+
+    <section>
+      <h2>Rewarded ads</h2>
+      <p>We use Google AdMob to offer an optional ad that lets you continue a casual game. When preloading or displaying an ad, the Google Mobile Ads SDK may process IP addresses, app and ad interactions, diagnostics, and device or account identifiers for advertising, analytics, and fraud prevention. The app does not request Android's advertising ID permission.</p>
+    </section>
+
+    <section>
+      <h2>How long we keep information</h2>
+      <p>Scheduled cleanup removes weekly leaderboard entries after the week changes. Ranked game records expire 24 hours after a game starts and become eligible for cleanup seven days after expiration. We keep public profiles and all-time best scores to operate accounts and leaderboards.</p>
+    </section>
+
+    <section>
+      <h2>How we protect information</h2>
+      <p>Requests between the app and its server use HTTPS. Leaderboard access and score submission require authentication, and the server verifies submitted scores. See <a href="https://policies.google.com/technologies/partner-sites?hl=en">how Google uses information from sites or apps that use its services</a>.</p>
+    </section>
+
+    <section>
+      <h2>Privacy inquiries</h2>
+      <p>For questions about accessing, correcting, or deleting your personal information, email <a href="mailto:purehero@gmail.com">purehero@gmail.com</a>.</p>
+    </section>
+  </article>
+</main>
+
+<script>
+  const picker = document.querySelector('.language-picker');
+  const buttons = Array.from(picker.querySelectorAll('button[data-language]'));
+  const policies = Array.from(document.querySelectorAll('.policy'));
+
+  function updateLanguage() {
+    const english = ['#en', '#english'].includes(window.location.hash);
+    const language = english ? 'en' : 'ko';
+    document.documentElement.lang = language;
+    document.title = document.getElementById('title-' + language).textContent;
+    picker.setAttribute('aria-label', english ? 'Choose language' : '언어 선택');
+
+    for (const policy of policies) {
+      policy.hidden = policy.lang !== language;
+    }
+    for (const button of buttons) {
+      button.setAttribute('aria-pressed', String(button.dataset.language === language));
+    }
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      window.history.replaceState(null, '', '#' + button.dataset.language);
+      updateLanguage();
+    });
+  }
+
+  window.addEventListener('hashchange', updateLanguage);
+  updateLanguage();
+  picker.hidden = false;
+</script>
+</body>
+</html>
