@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stack Relay 개인정보처리방침</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      line-height: 1.7;
+      color: #182720;
+      background: #f2f6f3;
+    }
+
+    body {
+      margin: 0;
+      padding: clamp(1rem, 5vw, 3rem);
+    }
+
+    main {
+      max-width: 42rem;
+      margin-inline: auto;
+      padding: clamp(1.25rem, 5vw, 3rem);
+      border: 1px solid #c9d7ce;
+      border-radius: 1rem;
+      background: #fff;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem 1rem;
+    }
+
+    header > p {
+      margin: 0;
+      font-weight: 750;
+    }
+
+    [role="group"]:not([hidden]) {
+      display: flex;
+      gap: 0.375rem;
+    }
+
+    button {
+      min-height: 44px;
+      padding-inline: 0.85rem;
+      border: 1px solid #7b9184;
+      border-radius: 0.5rem;
+      background: #fff;
+      color: #182720;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button[aria-pressed="true"] {
+      border-color: #214c37;
+      background: #214c37;
+      color: #fff;
+    }
+
+    :focus-visible {
+      outline: 2px solid #17603d;
+      outline-offset: 3px;
+    }
+
+    h1 {
+      margin: 0.65rem 0 0.75rem;
+      font-size: clamp(1.65rem, 5vw, 2.25rem);
+      line-height: 1.25;
+    }
+
+    h2 {
+      margin: 1.65rem 0 0.35rem;
+      font-size: 1.2rem;
+    }
+
+    article p {
+      margin: 0.5rem 0 0;
+      overflow-wrap: anywhere;
+    }
+
+    article + article:not([hidden]) {
+      margin-top: 2rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid #c9d7ce;
+    }
+
+    article[hidden] + article {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    a {
+      color: #17603d;
+      text-underline-offset: 0.16em;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p>Stack Relay</p>
+      <div id="language-controls" role="group" aria-label="언어 선택" hidden>
+        <button type="button" lang="ko" aria-controls="policy-ko" aria-pressed="true">한국어</button>
+        <button type="button" lang="en" aria-controls="policy-en" aria-pressed="false">English</button>
+      </div>
+    </header>
+
+    <article id="policy-ko" lang="ko">
+      <h1>개인정보처리방침</h1>
+      <p><strong>시행일</strong> [공개 전 입력]</p>
+
+      <section>
+        <h2>기기에 저장되는 정보</h2>
+        <p>Stack Relay는 현재 판의 진행 상황, 미션 진행도, 최고 점수, 플레이 기록과 설정을 기기 내 앱 저장소에 보관합니다. 앱은 이 정보를 저장된 판 이어하기, 기록 확인, 설정 유지에 사용합니다. 게임 코드는 이 정보를 외부 서버로 전송하지 않습니다.</p>
+        <p>저장된 게임 데이터를 삭제하려면 Android 설정에서 Stack Relay의 앱 저장공간을 열고 데이터 삭제를 선택할 수 있습니다.</p>
+      </section>
+
+      <section>
+        <h2>광고 관련 정보</h2>
+        <p>Stack Relay는 배너 광고에 Google AdMob을 사용합니다. Google Mobile Ads SDK는 광고 제공, 분석 및 부정행위 방지를 위해 IP 주소, 앱 내 상호작용, 진단 정보, 광고 ID를 포함한 기기 또는 계정 식별자를 수집하고 Google과 공유합니다. Google은 IP 주소를 사용해 기기의 대략적인 위치를 추정할 수 있습니다.</p>
+        <p>SDK가 수집하는 데이터는 전송 중 암호화됩니다. Android 설정에서 광고 ID를 재설정하거나 삭제할 수 있습니다. Google이 데이터를 처리하고 보유하는 방식은 <a href="https://policies.google.com/privacy?hl=ko">Google 개인정보처리방침</a>을 참조하세요.</p>
+      </section>
+
+      <section>
+        <h2>개인정보 문의</h2>
+        <p><a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+        <p>이 방침이나 데이터 삭제에 관한 문의는 위 연락처로 보내주세요.</p>
+      </section>
+    </article>
+
+    <article id="policy-en" lang="en">
+      <h1>Privacy Policy</h1>
+      <p><strong>Effective date</strong> [Enter before publication]</p>
+
+      <section>
+        <h2>Data stored on your device</h2>
+        <p>Stack Relay keeps your current game, mission progress, high score, play history, and settings in the app's storage on your device. The app uses this data to resume saved games, display your history, and remember your settings. The game code does not send this data to external servers.</p>
+        <p>To delete saved game data, open the app storage settings for Stack Relay in Android Settings and select the option to clear app data.</p>
+      </section>
+
+      <section>
+        <h2>Advertising data</h2>
+        <p>Stack Relay uses Google AdMob to show banner ads. The Google Mobile Ads SDK collects and shares IP addresses, in-app interactions, diagnostic information, and device or account identifiers including the advertising ID with Google for advertising, analytics, and fraud prevention. Google may use IP addresses to estimate a device's general location.</p>
+        <p>The SDK encrypts the data it collects in transit. You can reset or delete your advertising ID in Android Settings. See the <a href="https://policies.google.com/privacy?hl=en">Google Privacy Policy</a> for details on how Google handles and retains data.</p>
+      </section>
+
+      <section>
+        <h2>Privacy contact</h2>
+        <p><a href="mailto:purehero@gmail.com">purehero@gmail.com</a></p>
+        <p>Use the contact above for questions about this policy or data deletion.</p>
+      </section>
+    </article>
+  </main>
+
+  <script>
+    const controls = document.getElementById("language-controls");
+    const languageButtons = [...controls.querySelectorAll("button")];
+
+    function showLanguage(language) {
+      document.documentElement.lang = language;
+      document.title = language === "ko" ? "Stack Relay 개인정보처리방침" : "Stack Relay Privacy Policy";
+      controls.setAttribute("aria-label", language === "ko" ? "언어 선택" : "Choose language");
+
+      for (const button of languageButtons) {
+        const selected = button.lang === language;
+        button.setAttribute("aria-pressed", String(selected));
+        document.getElementById(button.getAttribute("aria-controls")).hidden = !selected;
+      }
+    }
+
+    for (const button of languageButtons) {
+      button.addEventListener("click", () => showLanguage(button.lang));
+    }
+    showLanguage("ko");
+    controls.hidden = false;
+  </script>
+</body>
+</html>
